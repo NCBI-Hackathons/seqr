@@ -1,4 +1,4 @@
-package gov.ncbi.seqr.Application;
+//package gov.ncbi.seqr;
 
 import net.sourceforge.argparse4j.*;
 
@@ -9,7 +9,7 @@ public class Seqr extends Object{
     private static Path outputPath;
 
 
-    public static void main(String[] args){
+    public static void main(final String[] args){
 
         ArgumentParser parser = ArgumentParsers.newArgumentParser("seqr")
                 .defaultHelp(true)
