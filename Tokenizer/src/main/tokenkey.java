@@ -1,4 +1,4 @@
-package main;
+//package findindex;
 import java.util.*;
 public class tokenkey {
 	private char []tk;
