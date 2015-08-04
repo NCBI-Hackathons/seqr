@@ -1,8 +1,19 @@
 package gov.nih.nlm.ncbi.seqr;
 
-/**
- * Created by hanl on 4/16/2015.
- */
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.common.SolrInputDocument;
+//import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -29,6 +40,8 @@ import java.util.Collection;
 
 
 public class SeqrApp {
+
+
     private final static Logger logger = LoggerFactory.getLogger(SeqrApp.class);
 
     public static void main(String[] args) throws Exception {
@@ -36,8 +49,8 @@ public class SeqrApp {
         CoreContainer container = new CoreContainer(solrDir);
         container.load();
 
-        System.out.println("Working Directory = " +
-                System.getProperty("user.dir"));
+        System.out.println("Working Directory = " + System.getProperty("user.dir"));
+
         EmbeddedSolrServer server = new EmbeddedSolrServer(container, "collection1");
         Collection<File> files = FileUtils.listFiles(new File("testdata/data"),
                 FileFilterUtils.suffixFileFilter(".json"),
@@ -45,11 +58,13 @@ public class SeqrApp {
 //        String[] exts = {"json"};
 //        Collection<File> files = FileUtils.listFiles(new File("/home"), exts, true);
 
+
+        LoadLargeFile2SolrServer fileLoader = new LoadLargeFile2SolrServer(server);
         for (File file : files) {
             String name = file.getName();
             System.out.println("loading " + name + "....");
+            fileLoader.loadFile(file);
             // Let's do the file loading;
-
         }
         server.commit();
         Thread.sleep(5000);
@@ -67,37 +82,3 @@ public class SeqrApp {
         server.shutdown();
     }
 }
-///
-//public class SeqrApp {
-//    // private final static Logger logger = LoggerFactory.getLogger(SeqrApp.class);
-//
-//    private static String solrHome = (System.getenv().get("USER") == "UBUNTU") ? "/home/ubuntu/solr-home" : "/opt/solr";
-//    public static void main(String[] args) throws Exception {
-//
-//
-//
-//        System.setProperty("solr.solr.home", solrHome);
-//        String solrDir = "testdata/solr";
-//        CoreContainer container = new CoreContainer(solrDir);
-//        container.load();
-//        EmbeddedSolrServer server = new EmbeddedSolrServer(container, "");
-//
-//        for(int i=0;i<10;++i) {
-//            SolrInputDocument doc = new SolrInputDocument();
-//            doc.addField("cat", "book");
-//            doc.addField("id", "book-" + i);
-//            doc.addField("name", "The Legend of the Hobbit part " + i);
-//            server.add(doc);
-//            if(i%100==0) server.commit();  // periodically flush
-//        }
-//        server.commit();
-//
-//        SolrQuery query = new SolrQuery();
-//        query.setQuery("sony digital camera");
-//        query.addFilterQuery("cat:electronics","store:amazon.com");
-//        query.setFields("id","price","merchant","cat","store");
-//        query.setStart(0);
-//        query.set("defType", "edismax");
-
-
-        //Collection<File> files = FileUtils.listFiles(new File("testdata/data"), FileFilterUtils.suffixFileFilter(".json"), /*TrueFileFilter.INSTANCE,*/ TrueFileFilter.INSTANCE);
