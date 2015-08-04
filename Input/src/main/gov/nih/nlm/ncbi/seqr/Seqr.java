@@ -1,7 +1,18 @@
 package gov.nih.nlm.ncbi.seqr;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -22,13 +33,27 @@ public class Seqr {
 
     private static SolrServer solrServer;
 
-
-    private static String outputPath;
-
     
     public static void main(final String[] args){
 
-        ArgumentParser parser = ArgumentParsers.newArgumentParser("seqr")
+        ArgumentParser parser = buildParser();
+
+        try {
+            Namespace space = parser.parseArgs(args);
+            System.out.println(space);
+            handleCommand(space);
+        } catch (ArgumentParserException e) {
+        	System.out.println(e);
+            parser.printHelp();
+            System.exit(1);
+        } catch (URISyntaxException e) {
+			System.out.println("Couldn't parse Solr server path or address.");
+			System.exit(1);
+		}
+    }
+
+	private static ArgumentParser buildParser() {
+		ArgumentParser parser = ArgumentParsers.newArgumentParser("seqr")
                 .defaultHelp(true)
                 .description("SEQR, now for shells.")
                 .version("${prog} 0.0.1a");
@@ -40,8 +65,9 @@ public class Seqr {
         Subparser index = subprsrs.addParser("index").help("create an index");
         
         //add options for search
+        search.addArgument("query_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).dest("input_file").help("query file for input").required(true);
         search.addArgument("--solr_query").type(String.class).help("filtering query in Solr query language");
-        search.addArgument("--index_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).help("pre-calculated index file");
+        search.addArgument("--index_file").type(Arguments.fileType().verifyCanRead()).help("pre-calculated index file");
         search.addArgument("--num_alignments").type(Integer.class).help("number of results to return");
         search.addArgument("--start_alignments").type(Integer.class).help("begin output at the Nth result").metavar("N");
         
@@ -49,7 +75,7 @@ public class Seqr {
         search.addArgument("--outfmt").type(String.class).dest("format").help("options for formatted output").nargs("+");
         
         //add required, options for index
-        index.addArgument("input_files").type(String.class).nargs("+").required(true);
+        index.addArgument("input_files").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).nargs("+").required(true);
         
         parser.addArgument("-d", "--db").type(String.class).dest("solr_url_or_path").help("URL of Solr server, or path to Solr directory").required(true);
         
@@ -61,7 +87,7 @@ public class Seqr {
         
         //add options
         parser.addArgument("-o", "--out").type(Arguments.fileType()).dest("output_file").help("path to output directory");
-        parser.addArgument("--query").type(String.class).dest("input_file").help("query file for input");
+        
         //add flags
         parser.addArgument("--parse_deflines").help("derive metadata from FASTA deflines and comments").action(Arguments.storeTrue());;
         
@@ -117,30 +143,13 @@ public class Seqr {
         unused.addArgument("--max_target_seqs").type(String.class).dest("num_sequences").help("unused").nargs(1);
         unused.addArgument("--num_threads").type(Integer.class).help("unused").nargs(1);
         unused.addArgument("--comp_based_stats").type(String.class).dest("compo").help("unused").nargs(1);
-        
-        
-
-        try {
-            Namespace space = parser.parseArgs(args);
-            System.out.println(space);
-            handleCommand(space);
-        } catch (ArgumentParserException e) {
-        	System.out.println(e);
-            parser.printHelp();
-            System.exit(1);
-        } catch (URISyntaxException e) {
-			System.out.println("Couldn't parse Solr server path or address.");
-			System.exit(1);
-		}
-    }
+		return parser;
+	}
 
     public static SolrServer getSolrServer(){
         return solrServer;
     }
 
-    public static String getOutputPath(){
-        return outputPath;
-    }
     
     public static void handleCommand(Namespace space) throws URISyntaxException{
     	//set up server
@@ -159,9 +168,43 @@ public class Seqr {
     	}
     	
     	//handle outfmt if present
+    	List<String> outputFields;
+    	Integer outputCode;
     	if (space.get("format") != null){
-    		List<String> outputFields = space.getList("format");
-    		Integer outputCode = Integer.parseInt(outputFields.remove(0));
+    		outputFields = space.getList("format");
+    		outputCode = Integer.parseInt(outputFields.remove(0));
+    	}
+    	
+    	//handle streams
+    	Writer outstream;
+    	List<Reader> inputFastas = new ArrayList<Reader>();
+    	Reader queryFasta;
+    	if (space.get("out") != null){
+    		try {
+				outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
+			} catch (FileNotFoundException e) {
+				System.out.println("Output file '" + space.getString("output_file") + "' not found.");
+				System.exit(1);
+			}
+    	}
+    	if (space.get("input_files") != null){
+    		List<File> l = space.getList("input_files");
+    		for (File f : l){
+    			try {
+					inputFastas.add(new BufferedReader(new InputStreamReader(new FileInputStream(f))));
+				} catch (FileNotFoundException e) {
+					System.out.println("File '" + f.toString() + "' for indexing not found.");
+					System.exit(1);
+				}
+    		}
+    	}
+    	if (space.get("input_file") != null){
+    		try {
+				queryFasta = new BufferedReader(new InputStreamReader(new FileInputStream((File) space.get("input_file"))));
+			} catch (FileNotFoundException e) {
+				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
+				System.exit(1);
+			}
     	}
     	
     	//pass on to appropriate subcommand
