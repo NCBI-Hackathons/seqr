@@ -23,6 +23,7 @@ $ seqr index -d http://a.solr.server/ <fasta_file>
 
 ### usage
 ```
+$ seqr
 usage: seqr [-h] -d SOLR_URL_OR_PATH [--version] [--citation]
             [-o OUTPUT_FILE] [--parse_deflines] [--html] [--lcase_masking]
             [--remote] [--show_gis] [--ungapped] [--use_sw_tback]
@@ -69,6 +70,40 @@ subcommands:
   COMMAND
     search               look for something
     index                create an index
+
+$ seqr search -h
+usage: seqr -d SOLR_URL_OR_PATH search [-h] [-n] [--solr_query SOLR_QUERY]
+            [--index_file INDEX_FILE] [--num_alignments NUM_ALIGNMENTS]
+            [--start_alignments N] [--outfmt FORMAT [FORMAT ...]]
+            input_file
+            
+positional arguments:
+  input_file             query file for input
+
+optional arguments:
+  -h, --help             show this help message and exit
+  -n, --is_dna           Input FASTA is DNA nucleotide, not protein
+  --solr_query SOLR_QUERY
+                         filtering query in Solr query language
+  --index_file INDEX_FILE
+                         pre-calculated index file
+  --num_alignments NUM_ALIGNMENTS
+                         number of results to return
+  --start_alignments N   begin output at the Nth result
+  --outfmt FORMAT [FORMAT ...]
+                         options for formatted output
+                         
+$ seqr index
+usage: seqr -d SOLR_URL_OR_PATH index [-h] input_files [input_files ...]
+
+positional arguments:
+  input_files
+
+optional arguments:
+  -h, --help             show this help message and exit
+
+
+
 
 unused:
   Unused compatibility arguments from BLASTP
