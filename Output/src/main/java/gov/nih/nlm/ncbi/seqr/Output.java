@@ -5,6 +5,7 @@ import org.apache.solr.common.SolrDocument;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.StringJoiner;
 
 import org.json.simple.JSONArray;
@@ -29,13 +30,13 @@ public class Output {
 
     private Writer writer;
     private String style;
-    private String[] fields;
+    private List<String> fields;
 
-    public void setFields(String[] fields) { this.fields = fields; }
-    public String[] getFields() { return fields; }
+    public void setFields(List<String> fields) { this.fields = fields; }
+    public List<String> getFields() { return fields; }
     private void checkFields(SolrDocument sd) {
         if(fields == null) {
-            setFields((String[]) sd.getFieldNames().toArray());
+            setFields((List<String>) sd.getFieldNames());
         }
     }
 
@@ -102,7 +103,7 @@ public class Output {
 
         writeHeader(versionSeqr, versionSolr, queryName, databaseName, getFields(), hits);
     }
-    public void writeHeader(String versionSeqr, String versionSolr, String queryName, String databaseName, String[] fields, int hits) throws IOException {
+    public void writeHeader(String versionSeqr, String versionSolr, String queryName, String databaseName, List<String> fields, int hits) throws IOException {
         setFields(fields);
         StringJoiner joiner = new StringJoiner(CSV_DELIMITER);
         for(String s : getFields()) {
