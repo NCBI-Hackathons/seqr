@@ -56,7 +56,35 @@ public class FindIndex {
             }catch (Exception ec){}
         }
     }
-
+   // add a new method to read directly from the string
+   public findindex(int i, String s){
+           //constructor the key index directly from the raw sequence input
+           // specify the int value 0, for the mode - reading sequence directly
+             if (i==0){
+            	 Hashtable<Character,Integer> ptable = new Hashtable<Character,Integer>();
+                 char[] letters ={'A','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','V','W','Y'};
+                 for(int j = 0;j<20;j++){
+                   ptable.put(letters[j],Integer.valueOf(j)); 
+                  }
+             tokenkey tk = new tokenkey();
+             char[] inputseq = (s.toUpperCase()).toCharArray();
+             keyindex = new ArrayList<Integer>();
+             int indexkey = 0;
+             char[] token = new char[5];
+             for (int k =0; k<(s.length()-4);k+=5){
+                 for (int j = 0;j<5;j++){
+                 token[j]=inputseq[k+j];
+               }
+             tk = new tokenkey(token);
+             indexkey = tk.getKey(ptable);
+             if(indexkey!=-1){
+             keyindex.add(indexkey);
+             }
+             }
+             }
+             else {System.out.println("please read a sequence");}        
+            }
+   // new method end, block it if it does not work
     public FindIndex(){
         // default constructor
         //sz = 0;
