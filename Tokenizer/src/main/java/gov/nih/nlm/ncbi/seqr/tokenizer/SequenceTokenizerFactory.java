@@ -42,7 +42,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
 
     private final String seqrIndexerFiles;
     private final int seqrSkipValue;
-    private MappedByteBuffer mem = null;
+    public MappedByteBuffer mem = null;
     private Hashtable<Character, Integer> ptable;
 
     /**
@@ -68,10 +68,38 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
      */
     @Override
     public SequenceTokenizer create(final AttributeFactory factory, final Reader in) {
-        if(this.mem==null){
-            this.mem=this.getMappedByteBuffer();
+        if (this.mem == null) {
+            this.mem = this.getMappedByteBuffer();
+            System.out.println("load 2.....");
         }
         return new SequenceTokenizer(factory, in, this.mem, seqrSkipValue, ptable);
+    }
+
+
+    private MappedByteBuffer getMappedByteBuffer(ResourceLoader loader) {
+
+        long bufferSize = 3200000;
+        FileChannel fc = null;
+        try {
+            File f = new File(seqrIndexerFiles);
+            if (f.exists()) return this.getMappedByteBuffer();
+            if (!f.exists()) f = new File(this.getClass().getResource(seqrIndexerFiles).getFile());
+            if (f.exists()) return this.getMappedByteBuffer();
+
+            InputStream is = loader.openResource(seqrIndexerFiles);
+            System.out.println("load 1.....");
+            logger.info("load seqr index file from solr loader : " + seqrIndexerFiles);
+            fc = new RandomAccessFile(f, "rw").getChannel();
+            //reader = new InputStreamReader(new FileInputStream(filename));
+            mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
+
+            mem.order(ByteOrder.LITTLE_ENDIAN);
+            return mem;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("Failed: read in the index file:" + seqrIndexerFiles);
+            return null;
+        }
     }
 
     private MappedByteBuffer getMappedByteBuffer() {
@@ -89,12 +117,11 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
             fc = new RandomAccessFile(f, "rw").getChannel();
             //reader = new InputStreamReader(new FileInputStream(filename));
             mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
-
             mem.order(ByteOrder.LITTLE_ENDIAN);
             return mem;
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Failed: read in the index file:" + seqrIndexerFiles);
+            logger.error("Failed: read in the index file:" + seqrIndexerFiles);
             return null;
         }
     }
@@ -106,8 +133,8 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
      * @param loader
      */
     public void inform(ResourceLoader loader) throws IOException {
-        if(this.mem==null){
-            this.mem=this.getMappedByteBuffer();
+        if (this.mem == null) {
+            this.mem = this.getMappedByteBuffer(loader);
         }
     }
 }

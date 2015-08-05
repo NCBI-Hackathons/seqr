@@ -73,7 +73,7 @@ public final class SequenceTokenizer extends Tokenizer {
                 tk = new TokenKey(token);
                 logger.info(tk.getKey(ptable) + "=key");
                 int k = tk.getKey(ptable);
-                if(k > 0){
+                if (k >= 0) {
                     indexValue = mem.getInt(4 * tk.getKey(ptable));
                     logger.info(indexValue + "=idx");
                     // found a non-zero-length token
