@@ -37,7 +37,7 @@ public class TokenKey {
                 //For example,  'AAACC' is 0*20^4 + 0*20^3 + 0*20^2 + 1*20^1 + 1*20^0 = 21, so the indexing term for 'AAACC' is the 22nd integer in the index file.
                 sum = sum + tv*(int)(Math.pow(20,(4-i)));
             }
-            else return null;
+            else return -1;
         }
         return Integer.valueOf(sum);
     }

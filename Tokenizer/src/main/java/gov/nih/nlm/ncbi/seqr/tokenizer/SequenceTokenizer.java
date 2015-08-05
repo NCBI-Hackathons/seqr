@@ -72,10 +72,13 @@ public final class SequenceTokenizer extends Tokenizer {
                 logger.info(String.valueOf(token) + "=AA"); //check whether read in seq data is normal
                 tk = new TokenKey(token);
                 logger.info(tk.getKey(ptable) + "=key");
-                indexValue = mem.getInt(4 * tk.getKey(ptable));
-                logger.info(indexValue + "=idx");
-                // found a non-zero-length token
-                termAtt.setEmpty().append(Integer.toString(indexValue));
+                int k = tk.getKey(ptable);
+                if(k > 0){
+                    indexValue = mem.getInt(4 * tk.getKey(ptable));
+                    logger.info(indexValue + "=idx");
+                    // found a non-zero-length token
+                    termAtt.setEmpty().append(Integer.toString(indexValue));
+                }
                 return true;
             }
         } catch (Exception e) {
