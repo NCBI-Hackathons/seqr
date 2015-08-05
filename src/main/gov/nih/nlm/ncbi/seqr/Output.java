@@ -46,10 +46,10 @@ public class Output {
             "    13 = JSON Blast output,\n" +
             "    14 = XML2 Blast output,\n" +
             "    15 = SAM Blast output\n" +
-            "   Optional include space delimited list of fields\n" +
-            "   to include in output after the number. Order\n" +
-            "   will be respected.\n" +
-            "   e.g. -outfmt \"42 all_the_fish thanks_for so_long_and\"";
+            "Optional include space delimited list of fields\n" +
+            "to include in output after the number. Order\n" +
+            "will be respected.\n" +
+            "e.g. -outfmt \"42 all_the_fish thanks_for so_long_and\"";
 
     // Blast+ style output format codes
     public static final int PAIRWISE                            = 0;
