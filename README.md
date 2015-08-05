@@ -2,9 +2,7 @@
 
 ## Super-fast protein sequence similarity search, based on [Solr](http://lucene.apache.org/solr/).
 
-The underlying concept of the project is that we have developed an algorithm, SEQR, to find similar protein sequences to a query protein sequence by using indexes.  This makes it very fast to retrieve similar sequences and easy to combine with other indices like taxonomy.  What we'd like to do for the initial goal of the hackathon is to make a command line version of this algorithm as it should be useful in many types of bioinformatics data pipelines, in a similar fashion to how BLAST and eutils are used. 
- 
-Another goal is to easily index any sequence related data and allow command line searching of that data.  To that end, we have partnered with the RNASeq mapping team to allow indexing of VCF files.
+The underlying concept of the project is based on the SEQR application, developed at NCBI, which finds similar protein sequences for a given query protein sequence by using indexes.  This allows it to quickly retrieve similar sequences and makes it easy to combine with other indices like taxonomy which is useful in subsetting the data returned.  Making a command line version of this algorithm has applications in many types of bioinformatics data pipelines, in a similar fashion to how BLAST and eutils are used. 
 
 [For more information, please visit our wiki.](https://github.com/DCGenomics/seqr_hackathon_v002/wiki)
 

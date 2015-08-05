@@ -24,6 +24,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class Output {
+	
 
     // Help information
     public static final String outputHelp =
