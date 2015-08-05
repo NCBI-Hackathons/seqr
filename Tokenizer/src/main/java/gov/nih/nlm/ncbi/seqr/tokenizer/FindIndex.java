@@ -57,7 +57,7 @@ public class FindIndex {
         }
     }
    // add a new method to read directly from the string
-   public findindex(int i, String s){
+   public FindIndex(int i, String s){
            //constructor the key index directly from the raw sequence input
            // specify the int value 0, for the mode - reading sequence directly
              if (i==0){
