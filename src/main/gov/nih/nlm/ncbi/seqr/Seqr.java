@@ -42,6 +42,9 @@ public class Seqr {
     private static SolrServer solrServer;
     
     private static String version = "0.0.1a";
+    
+    private static final String SEARCH = "search";
+    private static final String INDEX = "index";
 
     
     public static void main(final String[] args) {
@@ -70,7 +73,7 @@ public class Seqr {
 
         ArgumentGroup unused = parser.addArgumentGroup("unused").description("Unused compatibility arguments from BLASTP");
         //parser.addArgument("command").type(String.class).dest("command").help("Non-optional command").choices("search", "index", "load").required(true);
-        Subparsers subprsrs = parser.addSubparsers().description("SEQR commands").metavar("COMMAND");
+        Subparsers subprsrs = parser.addSubparsers().description("SEQR commands").metavar("COMMAND").dest("command");
         Subparser search = subprsrs.addParser("search").help("look for something");
         Subparser index = subprsrs.addParser("index").help("create an index");
         
@@ -251,17 +254,65 @@ public class Seqr {
     		solrQuery = space.getString("solr_query");
     	}
     	
-//    	SolrController control = new SolrController(solrServer);
-//    	for (Map<String, ProteinSequence> fasta : inputFastas){
-//    		for (Entry<String, ProteinSequence> contig : fasta.entrySet()){
-//    			String name = contig.getKey();
-//    			Sequence seq = contig.getValue();
-//    			//
-//    		}
-//    	}
+    	
+    	
+    	SolrController control = new SolrController(solrServer);
+    	SolrControllerAction action;
+    	
+    	SolrControllerAction search = new SolrControllerAction(){
+
+			public SolrDocument act(String seq) {
+				return control.search(seq);
+			}
+    		
+    	};
+    	
+    	SolrControllerAction index = new SolrControllerAction(){
+
+			public SolrDocument act(String seq) {
+				return control.index(seq);
+			}
+    		
+    	};
+    	
+    	if (space.get("command") != null){
+    		switch(space.getString("command")){
+    			case SEARCH : 
+    				action = search;
+    				break;
+    			case INDEX :
+    				action = index;
+    				break;
+    		}
+    	}
+    	
+    	
+    	for (Map<String, ProteinSequence> fasta : inputFastas){
+    		for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()){
+    			String name = contig.getKey();
+    			ProteinSequence seq = contig.getValue();
+    			String protSeq = seq.getSequenceAsString();
+    			try {
+					outputter.write(action.act(protSeq));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ParserConfigurationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (TransformerException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		}
+    	}
+
     	
     }
 
+    protected interface SolrControllerAction{
+    	abstract SolrDocument act(String seq);
+    }
 
 
 }
