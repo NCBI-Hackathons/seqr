@@ -71,7 +71,7 @@ public class Output {
 
     // Save initial ordering of fields for later use
     private void checkFields(SolrDocument sd) {
-        if(fields == null) {
+        if(fields == null | fields.isEmpty()) {
             setFields((List<String>) sd.getFieldNames());
         }
     }
@@ -152,7 +152,7 @@ public class Output {
         String queryName    = "gi|584277003|ref|NP_001276862.1| ZO-2 associated speckle protein [Homo sapiens]";
         String databaseName = "refseq_protein.00";
 
-        int hits = 6;
+        int hits = 42;
 
         writeHeader(versionSeqr, versionSolr, queryName, databaseName, getFields(), hits);
     }
