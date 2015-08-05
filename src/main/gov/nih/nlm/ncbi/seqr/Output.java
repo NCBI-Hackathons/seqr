@@ -47,8 +47,8 @@ public class Output {
             "    15 = SAM Blast output\n" +
             "Optionally, include space delimited list of fields\n" +
             "to include in output after the number. Order\n" +
-            "will be respected.\n" +
-            "e.g. -outfmt \"42 all_the_fish thanks_for so_long_and\"";
+            "will be respected. e.g.\n" +
+            "-outfmt \"42 all_the_fish thanks_for so_long_and\"";
 
     // Blast+ style output format codes
     public static final int PAIRWISE                            = 0;
