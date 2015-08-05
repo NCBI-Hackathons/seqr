@@ -1,6 +1,6 @@
 # SEQR
 
-## Blazing-fast protein sequence similarity search, based on Solr.
+## Super-fast protein sequence similarity search, based on Solr.
 
 ### License
 
