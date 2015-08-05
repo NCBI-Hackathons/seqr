@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.StringJoiner;
-import java.lang.*;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,6 +24,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class Output {
+
+    // Blast+ style output format codes
     public static final int PAIRWISE                            = 0;
     public static final int QUERY_ANCHORED_SHOWING_IDENTITIES   = 1;
     public static final int QUERY_ANCHORED_NO_IDENTITIES        = 2;
@@ -42,29 +43,42 @@ public class Output {
     public static final int XML2_BLAST_OUTPUT                   = 14;
     public static final int SAM_BLAST_OUTPUT                    = 15;
 
+    // Delimiters used in output
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final String COMMA_DELIMITER = ",";
     private static final String COMMA_SPACE_DELIMITER = ", ";
     private static final String TAB_DELIMITER = "\t";
 
+    // Locate varibles
     private Writer writer;
     private int style = COMMA_SEPARATED_VALUES;
     private List<String> fields;
     private boolean wroteHeader = false;
 
-    public void setStyle (int style) { this.style = style; }
-    public int getStyle () { return style; }
+    // Public get/set methods for locate varibles
+    public void setWriter(Writer writer) { this.writer = writer; }
+    public Writer getWriter() { return writer; }
+
+    public void setStyle(int style) { this.style = style; }
+    public int getStyle() { return style; }
 
     public void setFields(List<String> fields) { this.fields = fields; }
     public List<String> getFields() { return fields; }
+
+    public void setWroteHeader(boolean wroteHeader) { this.wroteHeader = wroteHeader; }
+    public boolean getWroteHeader() { return wroteHeader; }
+
+    // Save initial ordering of fields for later use
     private void checkFields(SolrDocument sd) {
         if(fields == null) {
             setFields((List<String>) sd.getFieldNames());
         }
     }
 
+    // Write String to writer, moved here is case you want to do error handling here in the future
     private void writeOut(String out) throws IOException { writer.write(out); }
 
+    // Write SolrDocument in CSV format
     private void writeCsv(SolrDocument sd) throws IOException {
         checkFields(sd);
 
@@ -76,6 +90,7 @@ public class Output {
         writeOut(joiner.toString());
         writeOut(NEW_LINE);
     }
+    // Write SolrDocument in Tabular format
     private void writeTab(SolrDocument sd) throws IOException {
         checkFields(sd);
 
@@ -87,6 +102,7 @@ public class Output {
         writeOut(joiner.toString());
         writeOut(NEW_LINE);
     }
+    // Write SolrDocument in JSON format
     private void writeJson(SolrDocument sd) throws IOException {
         checkFields(sd);
         JSONObject obj = new JSONObject();
@@ -97,6 +113,7 @@ public class Output {
 
         writeOut(obj.toJSONString());
     }
+    // Write SolrDocument in XML format
     private void writeXml(SolrDocument sd) throws ParserConfigurationException, TransformerException {
         checkFields(sd);
 
@@ -120,6 +137,10 @@ public class Output {
         transformer.transform(source, result);
     }
 
+    /*  Make up random header. This test method can be removed if deciding if to output a header
+     *  is handled up stream. Otherwise it will need to be rewritten.
+     *  TODO: Figure this out.
+     */
     public void writeHeader(SolrDocument sd) throws IOException {
         if(wroteHeader) { return; }
 
@@ -134,6 +155,9 @@ public class Output {
 
         writeHeader(versionSeqr, versionSolr, queryName, databaseName, getFields(), hits);
     }
+    /*  Write out file header. This method requires everything to be provided by the caller. The previous
+     *  method just made up all these things.
+     */
     public void writeHeader(String versionSeqr, String versionSolr, String queryName, String databaseName, List<String> fields, int hits) throws IOException {
         if(wroteHeader) { return; }
 
@@ -153,6 +177,14 @@ public class Output {
 
         wroteHeader = !wroteHeader;
     }
+
+    /*  Primary method for this class. This takes in one SolrDocument object at a time and redicects it
+     *  to an internal method for formating as determined by the style int. The result is then writer to
+     *  the writer object. The writer object and style int are give in the constructor. If a field list
+     *  is provided, only those fields in that order will be outputed. If no field list is given, all
+     *  fields in SolrDocument will be outputed, likily in a random order that is consistent between
+     *  SolrDocument objects.
+     */
     public void write (SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
         switch (getStyle()) {
             case PAIRWISE:
@@ -201,6 +233,9 @@ public class Output {
         }
     }
 
+    /*  Constructors for this object class. Various things can be provided or defaults used. Must
+     *  provide a Writer object at a minimum.
+     */
     public Output(Writer writer, int style, List<String> fields) {
         this.writer = writer;
         this.style = style;
