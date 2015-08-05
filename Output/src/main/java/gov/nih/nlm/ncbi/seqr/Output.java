@@ -42,7 +42,9 @@ public class Output {
     public static final int SAM_BLAST_OUTPUT                    = 15;
 
     private static final String NEW_LINE = System.getProperty("line.separator");
-    private static final String CSV_DELIMITER = ",";
+    private static final String COMMA_DELIMITER = ",";
+    private static final String COMMA_SPACE_DELIMITER = ", ";
+    private static final String TAB_DELIMITER = "\t";
 
     private Writer writer;
     private int style = COMMA_SEPARATED_VALUES;
@@ -63,18 +65,24 @@ public class Output {
 
     private void writeCsv(SolrDocument sd) throws IOException {
         checkFields(sd);
+
+        StringJoiner joiner = new StringJoiner(COMMA_DELIMITER);
         for(String field : getFields()) {
-            writeOut(sd.getFieldValue(field).toString());
-            writeOut(CSV_DELIMITER);
+            joiner.add(sd.getFieldValue(field).toString());
         }
+
+        writeOut(joiner.toString());
         writeOut(NEW_LINE);
     }
     private void writeTab(SolrDocument sd) throws IOException {
         checkFields(sd);
+
+        StringJoiner joiner = new StringJoiner(TAB_DELIMITER);
         for(String field : getFields()) {
-            writeOut(sd.getFieldValue(field).toString());
-            writeOut("\t");
+            joiner.add(sd.getFieldValue(field).toString());
         }
+
+        writeOut(joiner.toString());
         writeOut(NEW_LINE);
     }
     private void writeJson(SolrDocument sd) throws IOException {
@@ -124,18 +132,18 @@ public class Output {
     }
     public void writeHeader(String versionSeqr, String versionSolr, String queryName, String databaseName, List<String> fields, int hits) throws IOException {
         setFields(fields);
-        StringJoiner joiner = new StringJoiner(CSV_DELIMITER);
+        StringJoiner joiner = new StringJoiner(COMMA_SPACE_DELIMITER);
         for(String s : getFields()) {
             joiner.add(s);
         }
         String fieldNames = joiner.toString();
 
-        writeOut("# SEQR " + versionSeqr + "\n" +
-                "# SOLR " + versionSolr + "\n" +
-                "# Query: " + queryName + "\n" +
-                "# Database: " + databaseName + "\n" +
-                "# Fields: " + fieldNames + "\n" +
-                "# " + Integer.toString(hits) + " hits found" + "\n");
+        writeOut("# SEQR " + versionSeqr + NEW_LINE +
+                "# SOLR " + versionSolr + NEW_LINE +
+                "# Query: " + queryName + NEW_LINE +
+                "# Database: " + databaseName + NEW_LINE +
+                "# Fields: " + fieldNames + NEW_LINE +
+                "# " + Integer.toString(hits) + " hits found" + NEW_LINE);
     }
     public void write (SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
         switch (getStyle()) {
