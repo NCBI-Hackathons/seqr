@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.StringJoiner;
+import java.lang.*;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -49,6 +50,7 @@ public class Output {
     private Writer writer;
     private int style = COMMA_SEPARATED_VALUES;
     private List<String> fields;
+    private boolean wroteHeader = false;
 
     public void setStyle (int style) { this.style = style; }
     public int getStyle () { return style; }
@@ -131,6 +133,8 @@ public class Output {
         writeHeader(versionSeqr, versionSolr, queryName, databaseName, getFields(), hits);
     }
     public void writeHeader(String versionSeqr, String versionSolr, String queryName, String databaseName, List<String> fields, int hits) throws IOException {
+        if(wroteHeader) { return; }
+
         setFields(fields);
         StringJoiner joiner = new StringJoiner(COMMA_SPACE_DELIMITER);
         for(String s : getFields()) {
@@ -144,6 +148,8 @@ public class Output {
                 "# Database: " + databaseName + NEW_LINE +
                 "# Fields: " + fieldNames + NEW_LINE +
                 "# " + Integer.toString(hits) + " hits found" + NEW_LINE);
+
+        wroteHeader = !wroteHeader;
     }
     public void write (SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
         switch (getStyle()) {
