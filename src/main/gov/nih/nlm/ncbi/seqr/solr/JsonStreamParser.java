@@ -1,4 +1,4 @@
-package gov.nih.nlm.ncbi.seqr;
+package gov.nih.nlm.ncbi.seqr.solr;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;

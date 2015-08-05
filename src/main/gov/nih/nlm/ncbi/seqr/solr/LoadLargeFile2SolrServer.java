@@ -1,31 +1,31 @@
-package gov.nih.nlm.ncbi.seqr;
+package gov.nih.nlm.ncbi.seqr.solr;
 
 /**
  * Created by michaelpanciera on 8/4/15.
  */
 
 
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.common.SolrInputDocument;
-import org.codehaus.jackson.JsonNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Iterator;
+
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrInputDocument;
+import org.codehaus.jackson.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoadLargeFile2SolrServer {
 
     private final static Logger logger = LoggerFactory.getLogger(LoadLargeFile2SolrServer.class);
-    private EmbeddedSolrServer server;
+    private SolrServer server;
     private int counter = 0;
 
-    public LoadLargeFile2SolrServer(EmbeddedSolrServer server) {
+    public LoadLargeFile2SolrServer(SolrServer server) {
         this.server = server;
     }
 
