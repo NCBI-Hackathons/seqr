@@ -94,7 +94,6 @@ public class FindIndex {
 			}
 		}
 		return indexList;
-
 	}
 
 	// new method end, block it if it does not work

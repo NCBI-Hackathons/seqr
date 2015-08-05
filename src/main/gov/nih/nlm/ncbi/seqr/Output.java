@@ -24,6 +24,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class Output {
+	
 
     // Blast+ style output format codes
     public static final int PAIRWISE                            = 0;
