@@ -6,6 +6,10 @@
 
 No idea, currently.
 
+### Solr
+
+SEQR requires a Solr backend, but it'll instantiate it's own embedded Solr server if you don't have one running. Either way, you'll need to provide either the URL of a running Solr instance, or a path to a directory where the embedded Solr can build and save indexes. Supply this as an argument to the `-d` option.
+
 ### usage
 ```
 usage: seqr [-h] -d SOLR_URL_OR_PATH [--version] [--citation]
