@@ -89,7 +89,29 @@ optional arguments:
                          number of results to return
   --start_alignments N   begin output at the Nth result
   --outfmt FORMAT [FORMAT ...]
-                         options for formatted output
+                         Blast+ style output format codes are used.
+                            Include one number from below:
+                              0 = pairwise,
+                              1 = query-anchored showing identities,
+                              2 = query-anchored no identities,
+                              3 = flat query-anchored, show identities,
+                              4 = flat query-anchored, no identities,
+                              5 = XML Blast output,
+                              6 = tabular,
+                              7 = tabular with comment lines,
+                              8 = Text ASN.1,
+                              9 = Binary ASN.1,
+                             10 = Comma-separated values,
+                             11 = BLAST archive format (ASN.1),
+                             12 = JSON Seqalign output,
+                             13 = JSON Blast output,
+                             14 = XML2 Blast output,
+                             15 = SAM Blast output
+                         Optional include space delimited list of fields
+                         to include in output after the number. Order
+                         will be respected.
+                         e.g.   -outfmt    "42    all_the_fish   thanks_for
+                         so_long_and"
                          
 $ seqr index -h
 usage: seqr -d SOLR_URL_OR_PATH index [-h] input_files [input_files ...]
