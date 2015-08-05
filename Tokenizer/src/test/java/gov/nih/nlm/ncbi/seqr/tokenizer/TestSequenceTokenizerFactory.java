@@ -32,7 +32,7 @@ public class TestSequenceTokenizerFactory extends BaseTokenStreamFactoryTestCase
         final Reader reader = new StringReader("AAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAA");
         // create PatternTokenizer
         Map<String, String> args = new HashMap<String, String>();
-        args.put("indexer", "resources/good_one.11.index");
+        args.put("indexer", "/good_one.11.index");
         args.put("skip", "5");
         SequenceTokenizerFactory sf = new SequenceTokenizerFactory(args);
         TokenStream stream = sf.create(newAttributeFactory(), reader);

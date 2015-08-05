@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Factory
  */
-public class SequenceTokenizerFactory extends TokenizerFactory  {
+public class SequenceTokenizerFactory extends TokenizerFactory {
     public static final String INDEXER = "indexer";
     public static final String SKIP = "skip";
 
@@ -45,7 +45,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory  {
      */
     public SequenceTokenizerFactory(Map<String, String> args) {
         super(args);
-        seqrIndexerFiles = get(args, INDEXER, "");
+        seqrIndexerFiles = get(args, INDEXER, "/good_one.11.index");
         seqrSkipValue = getInt(args, SKIP, -1);
         ////build a hash table //ptable is: A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y  convert to 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
         ptable = new Hashtable<Character, Integer>();
@@ -63,7 +63,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory  {
      */
     @Override
     public SequenceTokenizer create(final AttributeFactory factory, final Reader in) {
-        return new SequenceTokenizer(factory, in,   this.getMappedByteBuffer(), seqrSkipValue, ptable);
+        return new SequenceTokenizer(factory, in, this.getMappedByteBuffer(), seqrSkipValue, ptable);
     }
 
     private MappedByteBuffer getMappedByteBuffer() {
@@ -74,7 +74,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory  {
         FileChannel fc = null;
         //read the index array from the file index;
         try {
-            fc = new RandomAccessFile(new File(seqrIndexerFiles), "rw").getChannel();
+            fc = new RandomAccessFile(new File(this.getClass().getResource(seqrIndexerFiles).getFile()), "rw").getChannel();
             //reader = new InputStreamReader(new FileInputStream(filename));
             mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
             mem.order(ByteOrder.LITTLE_ENDIAN);
