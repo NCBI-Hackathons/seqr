@@ -200,22 +200,21 @@ public class Seqr {
     	
     	
     	Output outputter = new Output(outstream, outputCode, outputFields);
-    	outputter = org.mockito.Mockito.spy(outputter);
     	
-    	SolrDocument doc = org.mockito.Mockito.mock(SolrDocument.class, org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.RETURNS_SMART_NULLS));
-    	try {
-			outputter.write(doc);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (ParserConfigurationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (TransformerException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-    	System.exit(0);
+//    	SolrDocument doc = org.mockito.Mockito.mock(SolrDocument.class, org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.RETURNS_SMART_NULLS));
+//    	try {
+//			outputter.write(doc);
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (ParserConfigurationException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (TransformerException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//    	System.exit(0);
     	
     	if (space.get("input_files") != null){
     		List<File> l = space.getList("input_files");
