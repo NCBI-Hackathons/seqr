@@ -24,13 +24,32 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class Output {
+    public static final int PAIRWISE                            = 0;
+    public static final int QUERY_ANCHORED_SHOWING_IDENTITIES   = 1;
+    public static final int QUERY_ANCHORED_NO_IDENTITIES        = 2;
+    public static final int FLAT_QUERY_ANCHORED_SHOW_IDENTITIES = 3;
+    public static final int FLAT_QUERY_ANCHORED_NO_IDENTITIES   = 4;
+    public static final int XML_BLAST_OUTPUT                    = 5;
+    public static final int TABULAR                             = 6;
+    public static final int TABULAR_WITH_COMMENT_LINES          = 7;
+    public static final int TEXT_ASN_1                          = 8;
+    public static final int BINARY_ASN_1                        = 9;
+    public static final int COMMA_SEPARATED_VALUES              = 10;
+    public static final int BLAST_ARCHIVE_FORMAT_ASN_1          = 11;
+    public static final int JSON_SEQALIGN_OUTPUT                = 12;
+    public static final int JSON_BLAST_OUTPUT                   = 13;
+    public static final int XML2_BLAST_OUTPUT                   = 14;
+    public static final int SAM_BLAST_OUTPUT                    = 15;
 
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static final String CSV_DELIMITER = ",";
 
     private Writer writer;
-    private String style;
+    private int style = COMMA_SEPARATED_VALUES;
     private List<String> fields;
+
+    public void setStyle (int style) { this.style = style; }
+    public int getStyle () { return style; }
 
     public void setFields(List<String> fields) { this.fields = fields; }
     public List<String> getFields() { return fields; }
@@ -111,26 +130,63 @@ public class Output {
         }
         String fieldNames = joiner.toString();
 
-        writeOut("# SEQR "      + versionSeqr  + "\n" +
-                 "# SOLR "      + versionSolr  + "\n" +
-                 "# Query: "    + queryName    + "\n" +
-                 "# Database: " + databaseName + "\n" +
-                 "# Fields: "   + fieldNames   + "\n" +
-                 "# " + Integer.toString(hits) + " hits found" + "\n");
+        writeOut("# SEQR " + versionSeqr + "\n" +
+                "# SOLR " + versionSolr + "\n" +
+                "# Query: " + queryName + "\n" +
+                "# Database: " + databaseName + "\n" +
+                "# Fields: " + fieldNames + "\n" +
+                "# " + Integer.toString(hits) + " hits found" + "\n");
     }
     public void write (SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
-        switch(style) {
-            case "csv":
-                writeCsv(sd);
+        switch (getStyle()) {
+            case PAIRWISE:
+
                 break;
-            case "tab":
+            case QUERY_ANCHORED_SHOWING_IDENTITIES:
+
+                break;
+            case QUERY_ANCHORED_NO_IDENTITIES:
+
+                break;
+            case FLAT_QUERY_ANCHORED_SHOW_IDENTITIES:
+
+                break;
+            case FLAT_QUERY_ANCHORED_NO_IDENTITIES:
+
+                break;
+            case XML_BLAST_OUTPUT:
+
+                break;
+            case TABULAR:
                 writeTab(sd);
                 break;
-            case "json":
+            case TABULAR_WITH_COMMENT_LINES:
+                writeHeader(sd);
+                writeTab(sd);
+                break;
+            case TEXT_ASN_1:
+
+                break;
+            case BINARY_ASN_1:
+
+                break;
+            case COMMA_SEPARATED_VALUES:
+                writeCsv(sd);
+                break;
+            case BLAST_ARCHIVE_FORMAT_ASN_1:
+
+                break;
+            case JSON_SEQALIGN_OUTPUT:
+
+                break;
+            case JSON_BLAST_OUTPUT:
                 writeJson(sd);
                 break;
-            case "xml":
+            case XML2_BLAST_OUTPUT:
                 writeXml(sd);
+                break;
+            case SAM_BLAST_OUTPUT:
+
                 break;
             default:
                 writeCsv(sd);
@@ -138,7 +194,12 @@ public class Output {
         }
     }
 
-    public Output(Writer writer, String style) {
+    public Output(Writer writer, int style, List<String> fields) {
+        this.writer = writer;
+        this.style = style;
+        this.fields = fields;
+    }
+    public Output(Writer writer, int style) {
         this.writer = writer;
         this.style = style;
     }
