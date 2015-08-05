@@ -30,7 +30,6 @@
             <version>4.4.0</version>
         </dependency>
         <dependency>
-
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
             <version>4.4.0</version>
@@ -68,7 +67,6 @@
             <version>4.4.0</version>
             <type>jar</type>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
