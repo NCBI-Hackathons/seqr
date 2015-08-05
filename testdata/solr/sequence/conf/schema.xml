@@ -288,11 +288,11 @@
         <fieldType name="sequence" class="solr.TextField" omitNorms="false">   
             <similarity class="org.apache.lucene.analysis.tanimoto.OverlapSimilarity"/> 
             <analyzer  type="index">         
-                <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/panfs/pan1.be-md.ncbi.nlm.nih.gov/pubchem_rnd/users/hanl/solr/hackson/SOLR_HOME/lib/good_one.11.index" skip="5"/>
+                <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/good_one.11.index" skip="5"/>
                 <filter class="solr.LowerCaseFilterFactory" />       
             </analyzer>
             <analyzer  type="query">
-                 <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/panfs/pan1.be-md.ncbi.nlm.nih.gov/pubchem_rnd/users/hanl/solr/hackson/SOLR_HOME/lib/good_one.11.index" skip="5"/>
+                 <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/good_one.11.index" skip="5"/>
                 <filter class="solr.LowerCaseFilterFactory" />       
             </analyzer>
         </fieldType> 
