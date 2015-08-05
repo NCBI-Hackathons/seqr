@@ -75,7 +75,7 @@ public class Output {
         }
     }
 
-    // Write String to writer, moved here is case you want to do error handling here in the future
+    // Write String to writer, moved here in case you want to do error handling here in the future
     private void writeOut(String out) throws IOException { writer.write(out); }
 
     // Write SolrDocument in CSV format
@@ -146,7 +146,7 @@ public class Output {
 
         checkFields(sd);
 
-        String versionSeqr  = "1.0";
+        String versionSeqr  = Seqr.getVersion();
         String versionSolr  = "4.10.4";
         String queryName    = "gi|584277003|ref|NP_001276862.1| ZO-2 associated speckle protein [Homo sapiens]";
         String databaseName = "refseq_protein.00";
