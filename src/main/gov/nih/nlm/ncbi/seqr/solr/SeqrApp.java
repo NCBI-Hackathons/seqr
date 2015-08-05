@@ -1,4 +1,4 @@
-package gov.nih.nlm.ncbi.seqr;
+package gov.nih.nlm.ncbi.seqr.solr;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;

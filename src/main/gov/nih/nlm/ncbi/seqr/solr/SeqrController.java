@@ -1,38 +1,28 @@
-package gov.nih.nlm.ncbi.seqr;
-import com.sun.org.apache.xpath.internal.operations.Mod;
-import org.apache.solr.client.solrj.ResponseParser;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+package gov.nih.nlm.ncbi.seqr.solr;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.*;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.impl.NoOpResponseParser;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import java.util.Collection;
-import java.util.function.Function;
-import com.google.common.collect.ImmutableMap;
-import org.apache.solr.core.CoreContainer;
 
 /**
  * Created by michaelpanciera on 8/4/15.
  */
 public class SeqrController {
 
-    private final EmbeddedSolrServer server;
+    private final SolrServer server;
     private static final int DEFAULT_ROWS = 100;
 
-    public SeqrController(EmbeddedSolrServer server) {
+    public SeqrController(SolrServer server) {
         this.server = server;
     }
 
@@ -96,8 +86,25 @@ public class SeqrController {
         return "matchstring:" + ints;
 
     }
+    /* API Functions */
+    public SolrDocumentList search(List<Integer> rawSequenceInts, Integer page_num, Integer num_rows) throws SolrServerException{
+    	String q = sequenceQueryFromInts(rawSequenceInts);
+        QueryResponse response = null;
+        if (page_num != null && num_rows != null) {
+            response = makeQuery(q, page_num, num_rows );
+        } else if (num_rows != null){
+            response = makeQuery(q, num_rows);
+        } else {
+            response = makeQuery(q, DEFAULT_ROWS);
+        }
+        if (response != null){
+        	return response.getResults();
+        }
+        return null;
+    }
+    
 
-    public boolean index(List<File> fastas) {
-        return false;
+    public SolrDocumentList index(String proteinSequence) {
+        return null;
     }
 }
