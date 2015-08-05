@@ -67,9 +67,9 @@ public final class SequenceTokenizer extends Tokenizer {
             while (br.read(token, 0, 5) >= 4) {
                 System.out.println(String.valueOf(token) + "=AA"); //check whether read in seq data is normal
                 tk = new TokenKey(token);
-                System.out.println(tk.getKey(ptable) + "=key");
+                // System.out.println(tk.getKey(ptable) + "=key");
                 indexValue = mem.getInt(4 * tk.getKey(ptable));
-                System.out.println(indexValue + "=sss");
+                //System.out.println(indexValue + "=sss");
                 // found a non-zero-length token
                 termAtt.setEmpty().append(Integer.toString(indexValue));
                 return true;
@@ -77,7 +77,6 @@ public final class SequenceTokenizer extends Tokenizer {
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("unable to process tokens ");
-
         }
         System.out.println("no more buffer ");
         return false;//no more tokens
