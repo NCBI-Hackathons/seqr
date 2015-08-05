@@ -3,6 +3,7 @@ package gov.nih.nlm.ncbi.seqr;
 
 import org.apache.solr.common.SolrDocument;
 
+import java.io.IOException;
 import java.io.Writer;
 
 import org.json.simple.JSONArray;
@@ -12,33 +13,39 @@ public class Output {
 
     private Writer writer;
     private String style;
+    private String[] fields;
 
-    private void writeOut(String out) {
-        try {
-            writer.write(out);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void setFields(String[] fields) { this.fields = fields; }
+    public String[] getFields() { return fields; }
+    private void checkFields(SolrDocument sd) {
+        if(fields == null) {
+            setFields((String[]) sd.getFieldNames().toArray());
         }
     }
 
-    private void writeCsv(SolrDocument sd) {
-        for(String field : sd.getFieldNames()) {
+    private void writeOut(String out) throws IOException { writer.write(out); }
+
+    private void writeCsv(SolrDocument sd) throws IOException {
+        checkFields(sd);
+        for(String field : getFields()) {
             writeOut(sd.getFieldValue(field).toString());
             writeOut(",");
         }
         writeOut(System.getProperty("line.separator"));
     }
-    private void writeTab(SolrDocument sd) {
-        for(String field : sd.getFieldNames()) {
+    private void writeTab(SolrDocument sd) throws IOException {
+        checkFields(sd);
+        for(String field : getFields()) {
             writeOut(sd.getFieldValue(field).toString());
             writeOut("\t");
         }
         writeOut(System.getProperty("line.separator"));
     }
-    private void writeJson(SolrDocument sd) {
+    private void writeJson(SolrDocument sd) throws IOException {
+        checkFields(sd);
         JSONObject obj = new JSONObject();
 
-        for(String field : sd.getFieldNames()) {
+        for(String field : getFields()) {
             obj.put(field, sd.getFieldValue(field).toString());
         }
 
@@ -48,27 +55,28 @@ public class Output {
 
     }
 
-    public void write (SolrDocument sd) {
-        try {
-            switch(style) {
-                case "csv":
-                    writeCsv(sd);
-                    break;
-                case "tab":
-                    writeTab(sd);
-                    break;
-                case "json":
-                    writeJson(sd);
-                    break;
-                case "xml":
-                    writeXml(sd);
-                    break;
-                default:
-                    System.err.println("42");
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void writeHeader(SolrDocument sd) throws IOException {
+        checkFields(sd);
+        writeOut("Hello World!");
+
+    }
+    public void write (SolrDocument sd) throws IOException {
+        switch(style) {
+            case "csv":
+                writeCsv(sd);
+                break;
+            case "tab":
+                writeTab(sd);
+                break;
+            case "json":
+                writeJson(sd);
+                break;
+            case "xml":
+                writeXml(sd);
+                break;
+            default:
+                writeCsv(sd);
+                break;
         }
     }
 
