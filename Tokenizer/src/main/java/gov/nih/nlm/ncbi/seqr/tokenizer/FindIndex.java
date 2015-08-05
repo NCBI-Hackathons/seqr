@@ -65,7 +65,7 @@ public class FindIndex {
 
     public int[] getIndex(String s){
         // s: index file name; return the index
-        long bufferSize = 3200000;
+        long bufferSize = 3368800*4;
         FileChannel fc = null;
         MappedByteBuffer mem = null;
 
