@@ -19,6 +19,8 @@ package gov.nih.nlm.ncbi.seqr.tokenizer;
 
 import org.apache.lucene.analysis.util.*;
 import org.apache.lucene.util.AttributeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteOrder;
@@ -30,7 +32,10 @@ import java.util.Map;
 /**
  * Factory
  */
-public class SequenceTokenizerFactory extends TokenizerFactory {
+public class SequenceTokenizerFactory extends TokenizerFactory implements ResourceLoaderAware {
+
+    private final static Logger logger = LoggerFactory.getLogger(SequenceTokenizerFactory.class);
+
     public static final String INDEXER = "indexer";
     public static final String SKIP = "skip";
 
@@ -74,9 +79,14 @@ public class SequenceTokenizerFactory extends TokenizerFactory {
         FileChannel fc = null;
         //read the index array from the file index;
         try {
-            fc = new RandomAccessFile(new File(this.getClass().getResource(seqrIndexerFiles).getFile()), "rw").getChannel();
+            File f = new File(seqrIndexerFiles);
+            if (!f.exists()) f = new File(this.getClass().getResource(seqrIndexerFiles).getFile());
+
+            logger.info("file loaded: " + seqrIndexerFiles);
+            fc = new RandomAccessFile(f, "rw").getChannel();
             //reader = new InputStreamReader(new FileInputStream(filename));
             mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
+
             mem.order(ByteOrder.LITTLE_ENDIAN);
             return mem;
         } catch (Exception e) {
@@ -86,4 +96,13 @@ public class SequenceTokenizerFactory extends TokenizerFactory {
         }
     }
 
+    /**
+     * Initializes this component with the provided ResourceLoader
+     * (used for loading classes, files, etc).
+     *
+     * @param loader
+     */
+    public void inform(ResourceLoader loader) throws IOException {
+
+    }
 }
