@@ -4,7 +4,7 @@
 
 ### License
 
-No idea, currently.
+SEQR is released under the terms of [Creative Commons 0: Public Domain](https://github.com/DCGenomics/seqr_hackathon_v002/blob/master/LICENSE)
 
 ### Solr
 
