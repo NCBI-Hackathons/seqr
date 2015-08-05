@@ -7,7 +7,8 @@
 No idea, currently.
 
 ### usage
-```usage: seqr [-h] -d SOLR_URL_OR_PATH [--version] [--citation]
+```
+usage: seqr [-h] -d SOLR_URL_OR_PATH [--version] [--citation]
             [-o OUTPUT_FILE] [--parse_deflines] [--html] [--lcase_masking]
             [--remote] [--show_gis] [--ungapped] [--use_sw_tback]
             [--import_search_strategy FILENAME]
@@ -121,4 +122,5 @@ unused:
   --num_threads NUM_THREADS
                          unused
   --comp_based_stats COMPO
-                         unused```
+                         unused
+```
