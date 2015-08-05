@@ -1,5 +1,7 @@
 package gov.nih.nlm.ncbi.seqr;
 
+import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -74,6 +76,7 @@ public class Seqr {
         
         //add options for search
         search.addArgument("query_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).dest("input_file").help("query file for input").required(true);
+        search.addArgument("-n", "--is_dna").action(Arguments.storeTrue()).help("Input FASTA is DNA nucleotide, not protein");
         search.addArgument("--solr_query").type(String.class).help("filtering query in Solr query language");
         search.addArgument("--index_file").type(Arguments.fileType().verifyCanRead()).help("pre-calculated index file");
         search.addArgument("--num_alignments").type(Integer.class).help("number of results to return");
@@ -229,7 +232,7 @@ public class Seqr {
     	}
     	if (space.get("input_file") != null){
     		try {
-				queryFasta = FastaReaderHelper.readFastaProteinSequence((File) space.get("input_file"));
+				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), (space.getBoolean("is_dna")));
 			} catch (IOException ee) {
 				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
 				System.exit(1);
