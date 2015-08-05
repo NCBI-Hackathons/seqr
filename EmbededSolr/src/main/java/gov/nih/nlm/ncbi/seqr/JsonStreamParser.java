@@ -1,9 +1,5 @@
 package gov.nih.nlm.ncbi.seqr;
 
-
-
-//package org.nih.nlm.ncbi.structure.seqrapp;
-
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
@@ -25,6 +21,7 @@ public class JsonStreamParser {
         factory = new MappingJsonFactory();
         parser = factory.createJsonParser(jsonFile);
     }
+
     public JsonStreamParser(String jsonFileName) throws IOException {
         this(new File(jsonFileName));
     }
