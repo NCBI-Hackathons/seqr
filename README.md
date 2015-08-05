@@ -1,4 +1,4 @@
-# SEQR
+# SEQR - SEQuence Retreival Tool
 
 ## Super-fast protein sequence similarity search, based on Solr.
 
