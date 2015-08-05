@@ -5,11 +5,15 @@ import org.apache.solr.common.SolrDocument;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.StringJoiner;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class Output {
+
+    private static final String NEW_LINE = System.getProperty("line.separator");
+    private static final String CSV_DELIMITER = ",";
 
     private Writer writer;
     private String style;
@@ -57,8 +61,30 @@ public class Output {
 
     public void writeHeader(SolrDocument sd) throws IOException {
         checkFields(sd);
-        writeOut("Hello World!");
 
+        String versionSeqr  = "1.o";
+        String versionSolr  = "4.10.4";
+        String queryName    = "gi|584277003|ref|NP_001276862.1| ZO-2 associated speckle protein [Homo sapiens]";
+        String databaseName = "refseq_protein.00";
+
+        int hits = 6;
+
+        writeHeader(versionSeqr, versionSolr, queryName, databaseName, getFields(), hits);
+    }
+    public void writeHeader(String versionSeqr, String versionSolr, String queryName, String databaseName, String[] fields, int hits) throws IOException {
+        setFields(fields);
+        StringJoiner joiner = new StringJoiner(CSV_DELIMITER);
+        for(String s : getFields()) {
+            joiner.add(s);
+        }
+        String fieldNames = joiner.toString();
+
+        writeOut("# SEQR "      + versionSeqr  + "\n" +
+                 "# SOLR "      + versionSolr  + "\n" +
+                 "# Query: "    + queryName    + "\n" +
+                 "# Database: " + databaseName + "\n" +
+                 "# Fields: "   + fieldNames   + "\n" +
+                 "# " + Integer.toString(hits) + " hits found" + "\n");
     }
     public void write (SolrDocument sd) throws IOException {
         switch(style) {
