@@ -1,19 +1,23 @@
 package gov.nih.nlm.ncbi.seqr;
 
-import java.io.BufferedReader;
+import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
+
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
@@ -27,14 +31,23 @@ import net.sourceforge.argparse4j.inf.Subparsers;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.core.CoreContainer;
+import org.biojava.nbio.core.sequence.ProteinSequence;
+import org.biojava.nbio.core.sequence.io.FastaReaderHelper;
+
 
 public class Seqr {
 
     private static SolrServer solrServer;
+    
+    private static String version = "0.0.1a";
+    
+    private static final String SEARCH = "search";
+    private static final String INDEX = "index";
 
     
-    public static void main(final String[] args){
+    public static void main(final String[] args) {
 
         ArgumentParser parser = buildParser();
 
@@ -56,16 +69,17 @@ public class Seqr {
 		ArgumentParser parser = ArgumentParsers.newArgumentParser("seqr")
                 .defaultHelp(true)
                 .description("SEQR, now for shells.")
-                .version("${prog} 0.0.1a");
+                .version("${prog} " + version);
 
         ArgumentGroup unused = parser.addArgumentGroup("unused").description("Unused compatibility arguments from BLASTP");
         //parser.addArgument("command").type(String.class).dest("command").help("Non-optional command").choices("search", "index", "load").required(true);
-        Subparsers subprsrs = parser.addSubparsers().description("SEQR commands").metavar("COMMAND");
+        Subparsers subprsrs = parser.addSubparsers().description("SEQR commands").metavar("COMMAND").dest("command");
         Subparser search = subprsrs.addParser("search").help("look for something");
         Subparser index = subprsrs.addParser("index").help("create an index");
         
         //add options for search
         search.addArgument("query_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).dest("input_file").help("query file for input").required(true);
+        search.addArgument("-n", "--is_dna").action(Arguments.storeTrue()).help("Input FASTA is DNA nucleotide, not protein");
         search.addArgument("--solr_query").type(String.class).help("filtering query in Solr query language");
         search.addArgument("--index_file").type(Arguments.fileType().verifyCanRead()).help("pre-calculated index file");
         search.addArgument("--num_alignments").type(Integer.class).help("number of results to return");
@@ -90,10 +104,6 @@ public class Seqr {
         
         //add flags
         parser.addArgument("--parse_deflines").help("derive metadata from FASTA deflines and comments").action(Arguments.storeTrue());;
-        
-        
-        
-        
         
         
         //add unused flags
@@ -149,9 +159,13 @@ public class Seqr {
     public static SolrServer getSolrServer(){
         return solrServer;
     }
+    
+    public static String getVersion(){
+    	return version;
+    }
 
     
-    public static void handleCommand(Namespace space) throws URISyntaxException{
+    public static void handleCommand(Namespace space) throws URISyntaxException {
     	//set up server
     	String solrString = space.getString("solr_url_or_path");
     	URI solrUri = new URI(solrString);
@@ -168,17 +182,19 @@ public class Seqr {
     	}
     	
     	//handle outfmt if present
-    	List<String> outputFields;
-    	Integer outputCode;
+    	List<String> outputFields = null;
+    	Integer outputCode = Output.XML2_BLAST_OUTPUT;
     	if (space.get("format") != null){
     		outputFields = space.getList("format");
     		outputCode = Integer.parseInt(outputFields.remove(0));
     	}
     	
+    	
     	//handle streams
-    	Writer outstream;
-    	List<Reader> inputFastas = new ArrayList<Reader>();
-    	Reader queryFasta;
+    	Writer outstream = new PrintWriter(System.out);
+    	List<Map<String, ProteinSequence>> inputFastas = new ArrayList<Map<String, ProteinSequence>>(); 
+    	Map<String, ProteinSequence> queryFasta;
+
     	if (space.get("out") != null){
     		try {
 				outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
@@ -186,32 +202,117 @@ public class Seqr {
 				System.out.println("Output file '" + space.getString("output_file") + "' not found.");
 				System.exit(1);
 			}
-    	}
+    	} 
+    	
+    	
+    	Output outputter = new Output(outstream, outputCode, outputFields);
+    	
+//    	SolrDocument doc = org.mockito.Mockito.mock(SolrDocument.class, org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.RETURNS_SMART_NULLS));
+//    	try {
+//			outputter.write(doc);
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (ParserConfigurationException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (TransformerException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//    	System.exit(0);
+    	
     	if (space.get("input_files") != null){
     		List<File> l = space.getList("input_files");
     		for (File f : l){
     			try {
-					inputFastas.add(new BufferedReader(new InputStreamReader(new FileInputStream(f))));
-				} catch (FileNotFoundException e) {
+					inputFastas.add(FastaReaderHelper.readFastaProteinSequence(f));
+				} catch (IOException e) {
 					System.out.println("File '" + f.toString() + "' for indexing not found.");
 					System.exit(1);
-				}
+				} 
     		}
     	}
     	if (space.get("input_file") != null){
     		try {
-				queryFasta = new BufferedReader(new InputStreamReader(new FileInputStream((File) space.get("input_file"))));
-			} catch (FileNotFoundException e) {
+				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), (space.getBoolean("is_dna")));
+			} catch (IOException ee) {
 				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
 				System.exit(1);
 			}
+    	} else {
+    		try {
+    			queryFasta = FastaReaderHelper.readFastaProteinSequence(System.in);
+    			inputFastas.add(queryFasta);
+    		} catch (IOException e){
+    			throw new java.lang.RuntimeException(e);
+    		}
     	}
     	
-    	//pass on to appropriate subcommand
-    	System.out.println(solrServer);
-    	System.out.println("finished");
+    	String solrQuery = "";
+    	if (space.get("solr_query") != null){
+    		solrQuery = space.getString("solr_query");
+    	}
+    	
+    	
+    	
+    	SolrController control = new SolrController(solrServer);
+    	SolrControllerAction action;
+    	
+    	SolrControllerAction search = new SolrControllerAction(){
+
+			public SolrDocument act(String seq) {
+				return control.search(seq);
+			}
+    		
+    	};
+    	
+    	SolrControllerAction index = new SolrControllerAction(){
+
+			public SolrDocument act(String seq) {
+				return control.index(seq);
+			}
+    		
+    	};
+    	
+    	if (space.get("command") != null){
+    		switch(space.getString("command")){
+    			case SEARCH : 
+    				action = search;
+    				break;
+    			case INDEX :
+    				action = index;
+    				break;
+    		}
+    	}
+    	
+    	
+    	for (Map<String, ProteinSequence> fasta : inputFastas){
+    		for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()){
+    			String name = contig.getKey();
+    			ProteinSequence seq = contig.getValue();
+    			String protSeq = seq.getSequenceAsString();
+    			try {
+					outputter.write(action.act(protSeq));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ParserConfigurationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (TransformerException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		}
+    	}
+
+    	
     }
 
+    protected interface SolrControllerAction{
+    	abstract SolrDocument act(String seq);
+    }
 
 
 }

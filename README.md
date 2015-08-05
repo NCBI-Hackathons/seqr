@@ -14,7 +14,12 @@ SEQR is released under the terms of [Creative Commons 0: Public Domain](https://
 
 ### Solr
 
-SEQR requires a Solr backend, but it'll instantiate it's own embedded Solr server if you don't have one running. Either way, you'll need to provide either the URL of a running Solr instance, or a path to a directory where the embedded Solr can build and save indexes. Supply this as an argument to the `-d` option.
+SEQR requires a Solr backend, but it'll instantiate it's own embedded Solr server if you don't have one running. Either way, you'll need to provide either the URL of a running Solr instance, or a path to a directory where the embedded Solr can build and save indexes. Supply this as an argument to the `-d` option:
+
+```
+$ seqr search -d /path/to/solr/directory/ <fasta_file>
+$ seqr index -d http://a.solr.server/ <fasta_file>
+```
 
 ### usage
 ```
