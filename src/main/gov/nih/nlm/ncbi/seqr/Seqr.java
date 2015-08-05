@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentGroup;
@@ -26,6 +29,7 @@ import net.sourceforge.argparse4j.inf.Subparsers;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.core.CoreContainer;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.core.sequence.io.FastaReaderHelper;
@@ -38,7 +42,7 @@ public class Seqr {
     private static String version = "0.0.1a";
 
     
-    public static void main(final String[] args){
+    public static void main(final String[] args) {
 
         ArgumentParser parser = buildParser();
 
@@ -155,7 +159,7 @@ public class Seqr {
     }
 
     
-    public static void handleCommand(Namespace space) throws URISyntaxException{
+    public static void handleCommand(Namespace space) throws URISyntaxException {
     	//set up server
     	String solrString = space.getString("solr_url_or_path");
     	URI solrUri = new URI(solrString);
@@ -173,7 +177,7 @@ public class Seqr {
     	
     	//handle outfmt if present
     	List<String> outputFields = null;
-    	Integer outputCode = 0;
+    	Integer outputCode = Output.XML2_BLAST_OUTPUT;
     	if (space.get("format") != null){
     		outputFields = space.getList("format");
     		outputCode = Integer.parseInt(outputFields.remove(0));
@@ -192,15 +196,26 @@ public class Seqr {
 				System.out.println("Output file '" + space.getString("output_file") + "' not found.");
 				System.exit(1);
 			}
-    	} else {
-    		try {
-    			queryFasta = FastaReaderHelper.readFastaProteinSequence(System.in);
-    		} catch (IOException e){
-    			throw new java.lang.RuntimeException(e);
-    		}
-    	}
+    	} 
+    	
     	
     	Output outputter = new Output(outstream, outputCode, outputFields);
+    	outputter = org.mockito.Mockito.spy(outputter);
+    	
+    	SolrDocument doc = org.mockito.Mockito.mock(SolrDocument.class, org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.RETURNS_SMART_NULLS));
+    	try {
+			outputter.write(doc);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (ParserConfigurationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (TransformerException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    	System.exit(0);
     	
     	if (space.get("input_files") != null){
     		List<File> l = space.getList("input_files");
@@ -220,12 +235,28 @@ public class Seqr {
 				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
 				System.exit(1);
 			}
+    	} else {
+    		try {
+    			queryFasta = FastaReaderHelper.readFastaProteinSequence(System.in);
+    			inputFastas.add(queryFasta);
+    		} catch (IOException e){
+    			throw new java.lang.RuntimeException(e);
+    		}
     	}
     	
-    	//pass on to appropriate subcommand
-//    	System.out.println(solrServer);
-//    	System.out.println("finished");
+    	String solrQuery = "";
+    	if (space.get("solr_query") != null){
+    		solrQuery = space.getString("solr_query");
+    	}
     	
+//    	SolrController control = new SolrController(solrServer);
+//    	for (Map<String, ProteinSequence> fasta : inputFastas){
+//    		for (Entry<String, ProteinSequence> contig : fasta.entrySet()){
+//    			String name = contig.getKey();
+//    			Sequence seq = contig.getValue();
+//    			//
+//    		}
+//    	}
     	
     }
 
