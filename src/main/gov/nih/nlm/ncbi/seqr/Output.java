@@ -121,6 +121,8 @@ public class Output {
     }
 
     public void writeHeader(SolrDocument sd) throws IOException {
+        if(wroteHeader) { return; }
+
         checkFields(sd);
 
         String versionSeqr  = "1.0";
