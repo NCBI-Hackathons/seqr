@@ -68,7 +68,10 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
      */
     @Override
     public SequenceTokenizer create(final AttributeFactory factory, final Reader in) {
-        return new SequenceTokenizer(factory, in, this.getMappedByteBuffer(), seqrSkipValue, ptable);
+        if(this.mem==null){
+            this.mem=this.getMappedByteBuffer();
+        }
+        return new SequenceTokenizer(factory, in, this.mem, seqrSkipValue, ptable);
     }
 
     private MappedByteBuffer getMappedByteBuffer() {
@@ -103,6 +106,8 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
      * @param loader
      */
     public void inform(ResourceLoader loader) throws IOException {
-
+        if(this.mem==null){
+            this.mem=this.getMappedByteBuffer();
+        }
     }
 }
