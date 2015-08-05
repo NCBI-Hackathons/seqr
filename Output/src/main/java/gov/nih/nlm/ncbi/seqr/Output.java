@@ -9,6 +9,18 @@ import java.util.StringJoiner;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class Output {
 
@@ -35,7 +47,7 @@ public class Output {
             writeOut(sd.getFieldValue(field).toString());
             writeOut(",");
         }
-        writeOut(System.getProperty("line.separator"));
+        writeOut(NEW_LINE);
     }
     private void writeTab(SolrDocument sd) throws IOException {
         checkFields(sd);
@@ -43,7 +55,7 @@ public class Output {
             writeOut(sd.getFieldValue(field).toString());
             writeOut("\t");
         }
-        writeOut(System.getProperty("line.separator"));
+        writeOut(NEW_LINE);
     }
     private void writeJson(SolrDocument sd) throws IOException {
         checkFields(sd);
@@ -55,14 +67,33 @@ public class Output {
 
         writeOut(obj.toJSONString());
     }
-    private void writeXml(SolrDocument sd) {
+    private void writeXml(SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
+        checkFields(sd);
 
+        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+        Document doc = docBuilder.newDocument();
+        Element rootElement = doc.createElement("seqr");
+        doc.appendChild(rootElement);
+
+        for(String field : getFields()) {
+            Element fieldElement = doc.createElement(field);
+            fieldElement.appendChild(doc.createTextNode(sd.getFieldValue(field).toString()));
+            rootElement.appendChild(fieldElement);
+        }
+
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(writer);
+        transformer.transform(source, result);
     }
 
     public void writeHeader(SolrDocument sd) throws IOException {
         checkFields(sd);
 
-        String versionSeqr  = "1.o";
+        String versionSeqr  = "1.0";
         String versionSolr  = "4.10.4";
         String queryName    = "gi|584277003|ref|NP_001276862.1| ZO-2 associated speckle protein [Homo sapiens]";
         String databaseName = "refseq_protein.00";
@@ -86,7 +117,7 @@ public class Output {
                  "# Fields: "   + fieldNames   + "\n" +
                  "# " + Integer.toString(hits) + " hits found" + "\n");
     }
-    public void write (SolrDocument sd) throws IOException {
+    public void write (SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
         switch(style) {
             case "csv":
                 writeCsv(sd);
