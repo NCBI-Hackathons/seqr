@@ -23,7 +23,7 @@ $ seqr index -d http://a.solr.server/ <fasta_file>
 
 ### usage
 ```
-$ seqr
+$ seqr -h
 usage: seqr [-h] -d SOLR_URL_OR_PATH [--version] [--citation]
             [-o OUTPUT_FILE] [--parse_deflines] [--html] [--lcase_masking]
             [--remote] [--show_gis] [--ungapped] [--use_sw_tback]
