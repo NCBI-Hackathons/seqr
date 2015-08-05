@@ -25,6 +25,31 @@ import javax.xml.transform.stream.StreamResult;
 
 public class Output {
 
+    // Help information
+    public static final String outputHelp =
+            "Blast+ style output format codes are used.\n" +
+            "   Include one number from below:\n" +
+            "     0 = pairwise,\n" +
+            "     1 = query-anchored showing identities,\n" +
+            "     2 = query-anchored no identities,\n" +
+            "     3 = flat query-anchored, show identities,\n" +
+            "     4 = flat query-anchored, no identities,\n" +
+            "     5 = XML Blast output,\n" +
+            "     6 = tabular,\n" +
+            "     7 = tabular with comment lines,\n" +
+            "     8 = Text ASN.1,\n" +
+            "     9 = Binary ASN.1,\n" +
+            "    10 = Comma-separated values,\n" +
+            "    11 = BLAST archive format (ASN.1),\n" +
+            "    12 = JSON Seqalign output,\n" +
+            "    13 = JSON Blast output,\n" +
+            "    14 = XML2 Blast output,\n" +
+            "    15 = SAM Blast output\n" +
+            "   Optional include space delimited list of fields\n" +
+            "   to include in output after the number. Order\n" +
+            "   will be respected.\n" +
+            "   e.g. -outfmt \"42 all_the_fish thanks_for so_long_and\"";
+
     // Blast+ style output format codes
     public static final int PAIRWISE                            = 0;
     public static final int QUERY_ANCHORED_SHOWING_IDENTITIES   = 1;
