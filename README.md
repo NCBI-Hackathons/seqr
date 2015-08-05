@@ -6,7 +6,7 @@ The underlying concept of the project is that we have developed an algorithm, SE
  
 Another goal is to easily index any sequence related data and allow command line searching of that data.  To that end, we have partnered with the RNASeq mapping team to allow indexing of VCF files.
 
-[For more information, please visit our wiki:](https://github.com/DCGenomics/seqr_hackathon_v002.wiki.git)
+[For more information, please visit our wiki:](https://github.com/DCGenomics/seqr_hackathon_v002/wiki)
 
 ### License
 
