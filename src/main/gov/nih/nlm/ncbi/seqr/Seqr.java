@@ -1,14 +1,12 @@
 package gov.nih.nlm.ncbi.seqr;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,7 +29,6 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.core.CoreContainer;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.core.sequence.io.FastaReaderHelper;
-import org.biojava.nbio.core.sequence.template.SequenceMixin.SequenceIterator;
 
 
 public class Seqr {
@@ -175,18 +172,19 @@ public class Seqr {
     	}
     	
     	//handle outfmt if present
-    	List<String> outputFields;
-    	Integer outputCode;
+    	List<String> outputFields = null;
+    	Integer outputCode = 0;
     	if (space.get("format") != null){
     		outputFields = space.getList("format");
     		outputCode = Integer.parseInt(outputFields.remove(0));
     	}
-    	Output outputter = new Output(outputCode, outputFields);
+    	
     	
     	//handle streams
-    	Writer outstream;
+    	Writer outstream = new PrintWriter(System.out);
     	List<Map<String, ProteinSequence>> inputFastas = new ArrayList<Map<String, ProteinSequence>>(); 
     	Map<String, ProteinSequence> queryFasta;
+
     	if (space.get("out") != null){
     		try {
 				outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
@@ -194,7 +192,16 @@ public class Seqr {
 				System.out.println("Output file '" + space.getString("output_file") + "' not found.");
 				System.exit(1);
 			}
+    	} else {
+    		try {
+    			queryFasta = FastaReaderHelper.readFastaProteinSequence(System.in);
+    		} catch (IOException e){
+    			throw new java.lang.RuntimeException(e);
+    		}
     	}
+    	
+    	Output outputter = new Output(outstream, outputCode, outputFields);
+    	
     	if (space.get("input_files") != null){
     		List<File> l = space.getList("input_files");
     		for (File f : l){
