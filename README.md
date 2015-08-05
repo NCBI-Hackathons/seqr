@@ -75,10 +75,10 @@ $ seqr search -h
 usage: seqr -d SOLR_URL_OR_PATH search [-h] [-n] [--solr_query SOLR_QUERY]
             [--index_file INDEX_FILE] [--num_alignments NUM_ALIGNMENTS]
             [--start_alignments N] [--outfmt FORMAT [FORMAT ...]]
-            input_file
-            
+            QUERY FASTA
+
 positional arguments:
-  input_file             query file for input
+  QUERY FASTA            query file for input
 
 optional arguments:
   -h, --help             show this help message and exit
