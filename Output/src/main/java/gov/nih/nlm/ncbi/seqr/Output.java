@@ -65,7 +65,7 @@ public class Output {
         checkFields(sd);
         for(String field : getFields()) {
             writeOut(sd.getFieldValue(field).toString());
-            writeOut(",");
+            writeOut(CSV_DELIMITER);
         }
         writeOut(NEW_LINE);
     }
@@ -87,7 +87,7 @@ public class Output {
 
         writeOut(obj.toJSONString());
     }
-    private void writeXml(SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
+    private void writeXml(SolrDocument sd) throws ParserConfigurationException, TransformerException {
         checkFields(sd);
 
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -140,22 +140,17 @@ public class Output {
     public void write (SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
         switch (getStyle()) {
             case PAIRWISE:
-
-                break;
+                throw new UnsupportedOperationException("Pairwise is unimplemented");
             case QUERY_ANCHORED_SHOWING_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Query anchored showing identities is unimplemented");
             case QUERY_ANCHORED_NO_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Query anchored, no identities is unimplemented");
             case FLAT_QUERY_ANCHORED_SHOW_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Flat query anchored showing identities is unimplemented");
             case FLAT_QUERY_ANCHORED_NO_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Flat query anchored, no identities is unimplemented");
             case XML_BLAST_OUTPUT:
-
+                writeXml(sd);
                 break;
             case TABULAR:
                 writeTab(sd);
@@ -165,19 +160,16 @@ public class Output {
                 writeTab(sd);
                 break;
             case TEXT_ASN_1:
-
-                break;
+                throw new UnsupportedOperationException("Text ASN.1 is unimplemented");
             case BINARY_ASN_1:
-
-                break;
+                throw new UnsupportedOperationException("Binary ASN.1 is unimplemented");
             case COMMA_SEPARATED_VALUES:
                 writeCsv(sd);
                 break;
             case BLAST_ARCHIVE_FORMAT_ASN_1:
-
-                break;
+                throw new UnsupportedOperationException("Blast archive format ASN.1 is unimplemented");
             case JSON_SEQALIGN_OUTPUT:
-
+                writeJson(sd);
                 break;
             case JSON_BLAST_OUTPUT:
                 writeJson(sd);
@@ -186,8 +178,7 @@ public class Output {
                 writeXml(sd);
                 break;
             case SAM_BLAST_OUTPUT:
-
-                break;
+                throw new UnsupportedOperationException("SAM output is unimplemented");
             default:
                 writeCsv(sd);
                 break;
@@ -199,8 +190,15 @@ public class Output {
         this.style = style;
         this.fields = fields;
     }
+    public Output(Writer writer, List<String> fields) {
+        this.writer = writer;
+        this.fields = fields;
+    }
     public Output(Writer writer, int style) {
         this.writer = writer;
         this.style = style;
+    }
+    public Output(Writer writer) {
+        this.writer = writer;
     }
 }
