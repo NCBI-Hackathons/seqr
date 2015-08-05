@@ -1,6 +1,6 @@
 # SEQR - SEQuence Retreival Tool
 
-## Super-fast protein sequence similarity search, based on Solr.
+## Super-fast protein sequence similarity search, based on [Solr](http://lucene.apache.org/solr/).
 
 ### License
 
