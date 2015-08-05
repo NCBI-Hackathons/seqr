@@ -92,7 +92,7 @@ public class Seqr {
         search.addArgument("--start_alignments").type(Integer.class).help("begin output at the Nth result").metavar("N");
         
         //add special outformat parser
-        search.addArgument("--outfmt").type(String.class).dest("format").help(Output.outputHelp).nargs("+");
+        search.addArgument("--outfmt").type(String.class).dest("format").help(Output.OUTPUTHELP).nargs("+");
         
         //add required, options for index
         index.addArgument("input_files").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).nargs("+").required(true);

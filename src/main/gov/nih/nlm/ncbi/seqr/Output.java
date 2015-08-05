@@ -24,10 +24,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class Output {
-	
 
     // Help information
-    public static final String outputHelp =
+    public static final String OUTPUTHELP =
             "Blast+ style output format codes are used.\n" +
             "   Include one number from below:\n" +
             "     0 = pairwise,\n" +
