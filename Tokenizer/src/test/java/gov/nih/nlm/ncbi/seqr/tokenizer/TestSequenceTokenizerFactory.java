@@ -18,6 +18,8 @@ package gov.nih.nlm.ncbi.seqr.tokenizer;
  */
 
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.util.ClasspathResourceLoader;
+import org.apache.lucene.analysis.util.ResourceLoader;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -30,6 +32,23 @@ import java.util.Map;
 public class TestSequenceTokenizerFactory extends BaseTokenStreamFactoryTestCase {
     public void testFactory() throws Exception {
         final Reader reader = new StringReader("AAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAA");
+        // create PatternTokenizer
+        Map<String, String> args = new HashMap<String, String>();
+        args.put("indexer", "/good_one.11.index");
+        args.put("skip", "5");
+        SequenceTokenizerFactory sf = new SequenceTokenizerFactory(args);
+        TokenStream stream = sf.create(newAttributeFactory(), reader);
+        assertTokenStreamContents(stream, new String[]{"141351", "141351","141351","240382","141351","141351","141351","141351"});
+        TokenStream stream2 = sf.create(newAttributeFactory(), new StringReader("AAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAA"));
+        assertTokenStreamContents(stream2, new String[]{"141351", "141351","141351","240382","141351","141351","141351","141351"});
+    }
+
+    public void testFactory2() throws Exception {
+        final Reader reader = new StringReader("AAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAA");
+
+        ResourceLoader loader = new ClasspathResourceLoader(getClass());
+
+        assertTrue("loader is null and it shouldn't be", loader != null);
         // create PatternTokenizer
         Map<String, String> args = new HashMap<String, String>();
         args.put("indexer", "/good_one.11.index");

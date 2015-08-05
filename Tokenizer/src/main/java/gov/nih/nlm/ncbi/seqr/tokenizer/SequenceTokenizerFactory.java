@@ -19,6 +19,8 @@ package gov.nih.nlm.ncbi.seqr.tokenizer;
 
 import org.apache.lucene.analysis.util.*;
 import org.apache.lucene.util.AttributeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteOrder;
@@ -30,14 +32,17 @@ import java.util.Map;
 /**
  * Factory
  */
-public class SequenceTokenizerFactory extends TokenizerFactory {
+public class SequenceTokenizerFactory extends TokenizerFactory implements ResourceLoaderAware {
+
+    private final static Logger logger = LoggerFactory.getLogger(SequenceTokenizerFactory.class);
+
     public static final String INDEXER = "indexer";
     public static final String SKIP = "skip";
 
 
     private final String seqrIndexerFiles;
     private final int seqrSkipValue;
-    private MappedByteBuffer mem = null;
+    public MappedByteBuffer mem = null;
     private Hashtable<Character, Integer> ptable;
 
     /**
@@ -63,27 +68,73 @@ public class SequenceTokenizerFactory extends TokenizerFactory {
      */
     @Override
     public SequenceTokenizer create(final AttributeFactory factory, final Reader in) {
-        return new SequenceTokenizer(factory, in, this.getMappedByteBuffer(), seqrSkipValue, ptable);
+        if (this.mem == null) {
+            this.mem = this.getMappedByteBuffer();
+            System.out.println("load 2.....");
+        }
+        return new SequenceTokenizer(factory, in, this.mem, seqrSkipValue, ptable);
+    }
+
+
+    private MappedByteBuffer getMappedByteBuffer(ResourceLoader loader) {
+
+        long bufferSize = 3368800*4;
+        FileChannel fc = null;
+        try {
+            File f = new File(seqrIndexerFiles);
+            if (f.exists()) return this.getMappedByteBuffer();
+            if (!f.exists()) f = new File(this.getClass().getResource(seqrIndexerFiles).getFile());
+            if (f.exists()) return this.getMappedByteBuffer();
+
+            InputStream is = loader.openResource(seqrIndexerFiles);
+
+            logger.info("getMappedByteBuffer(ResourceLoader loader): load seqr index file from solr loader : " + seqrIndexerFiles);
+            fc = new RandomAccessFile(f, "rw").getChannel();
+            //reader = new InputStreamReader(new FileInputStream(filename));
+            mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
+
+            mem.order(ByteOrder.LITTLE_ENDIAN);
+            return mem;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("Failed: read in the index file:" + seqrIndexerFiles);
+            return null;
+        }
     }
 
     private MappedByteBuffer getMappedByteBuffer() {
         if (seqrIndexerFiles.isEmpty()) {
             return null;
         }
-        long bufferSize = 3200000;
+        long bufferSize = 3368800*4;
         FileChannel fc = null;
         //read the index array from the file index;
         try {
-            fc = new RandomAccessFile(new File(this.getClass().getResource(seqrIndexerFiles).getFile()), "rw").getChannel();
+            File f = new File(seqrIndexerFiles);
+            if (!f.exists()) f = new File(this.getClass().getResource(seqrIndexerFiles).getFile());
+
+            logger.info("getMappedByteBuffer() file loaded: " + seqrIndexerFiles);
+            fc = new RandomAccessFile(f, "rw").getChannel();
             //reader = new InputStreamReader(new FileInputStream(filename));
             mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
             mem.order(ByteOrder.LITTLE_ENDIAN);
             return mem;
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Failed: read in the index file:" + seqrIndexerFiles);
+            logger.error("getMappedByteBuffer() Failed: read in the index file:" + seqrIndexerFiles);
             return null;
         }
     }
 
+    /**
+     * Initializes this component with the provided ResourceLoader
+     * (used for loading classes, files, etc).
+     *
+     * @param loader
+     */
+    public void inform(ResourceLoader loader) throws IOException {
+        if (this.mem == null) {
+            this.mem = this.getMappedByteBuffer(loader);
+        }
+    }
 }

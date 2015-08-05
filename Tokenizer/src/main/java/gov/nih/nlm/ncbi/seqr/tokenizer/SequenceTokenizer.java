@@ -21,6 +21,8 @@ import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.util.AttributeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.Reader;
@@ -33,6 +35,8 @@ import java.util.Hashtable;
 
 public final class SequenceTokenizer extends Tokenizer {
 
+
+    private final static Logger logger = LoggerFactory.getLogger(SequenceTokenizer.class);
     private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
     private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
     private final StringBuilder str = new StringBuilder();
@@ -65,13 +69,16 @@ public final class SequenceTokenizer extends Tokenizer {
         TokenKey tk = new TokenKey();
         try {
             while (br.read(token, 0, 5) >= 4) {
-                //System.out.println(String.valueOf(token) + "=AA"); //check whether read in seq data is normal
+                logger.info(String.valueOf(token) + "=AA"); //check whether read in seq data is normal
                 tk = new TokenKey(token);
-                // System.out.println(tk.getKey(ptable) + "=key");
-                indexValue = mem.getInt(4 * tk.getKey(ptable));
-                //System.out.println(indexValue + "=sss");
-                // found a non-zero-length token
-                termAtt.setEmpty().append(Integer.toString(indexValue));
+                logger.info(tk.getKey(ptable) + "=key");
+                int k = tk.getKey(ptable);
+                if (k >= 0) {
+                    indexValue = mem.getInt(4 * tk.getKey(ptable));
+                    logger.info(indexValue + "=idx");
+                    // found a non-zero-length token
+                    termAtt.setEmpty().append(Integer.toString(indexValue));
+                }
                 return true;
             }
         } catch (Exception e) {

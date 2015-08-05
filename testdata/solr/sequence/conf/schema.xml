@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema name="sequence" version="1.5">
+    <fields>
+        <!-- the unique id for all records, id=gi-->
+        <field name="id" type="string" indexed="true" stored="true" required="true"
+            multiValued="false" docValues="true"/>
+        <field name="gi" type="tint" indexed="true" stored="true"/>
+        <field name="nrgi" type="int" indexed="true" stored="false"/>
+        <!-- display and indexing fields -->
+        <field name="seqlen" type="tint" indexed="true" stored="true"/>
+        <field name="matchlen" type="tint" indexed="true" stored="true"/>
+        <field name="taxid" type="int" indexed="true" stored="true"/>
+        <field name="acxn" type="lowercase" indexed="true" stored="true"/>
+        <field name="taxlineage" type="descendent_path" indexed="true" stored="false"/>
+        <field name="defline" type="text_general" indexed="true" stored="true"/>
+        <field name="sequence" type="sequence" indexed="true" stored="true"/>
+        <field name="md5" type="string" indexed="true" stored="true"/>
+        <field name="pig" type="int" indexed="true" stored="false"/>
+        <field name="matchstring" type="matchstring_tanimoto" indexed="true" stored="false"
+            omitPositions="true"/>
+        <!--test for native tervsky or tanimoto score-->
+        <field name="matchstring_t" type="matchstring_tervsky" indexed="true" stored="false"
+            omitPositions="true"/>
+        <field name="matchlen_t" type="int" indexed="true" stored="false" docValues="true"
+            default="0"/>
+        <copyField source="matchstring" dest="matchstring_t"/>
+        <copyField source="matchlen" dest="matchlen_t"/>
+        <!-- end of native tverky scoring-->
+
+        <!--tags-->
+        <field name="majortag" type="string" indexed="true" stored="false" multiValued="true"/>
+        <field name="tag" type="string" indexed="true" stored="false" multiValued="true"/>
+        <field name="internaltag" type="string" indexed="true" stored="false" multiValued="true"/>
+        <!--db source-->
+        <field name="dbsrcname" type="string" indexed="true" stored="false" multiValued="true"/>
+
+        <!--tax infomartion-->
+        <field name="taxname" type="lowercase" indexed="true" stored="true"/>
+        <field name="blastname" type="lowercase" indexed="true" stored="true"/>
+        <field name="sciname" type="lowercase" indexed="true" stored="true"/>
+        <field name="taxcommon" type="lowercase" indexed="true" stored="true"/>
+        <field name="taxterm" type="lowercase" indexed="true" stored="false" multiValued="true"/>
+        <field name="prefaxname" type="lowercase" indexed="true" stored="false"/>
+
+        <copyField source="blastname" dest="taxterm"/>
+        <copyField source="sciname" dest="taxterm"/>
+        <copyField source="taxcommon" dest="taxterm"/>
+
+        <!--gene info-->
+        <field name="geneid" type="int" indexed="true" stored="true"/>
+        <field name="genesymbol" type="string" indexed="true" stored="true"/>
+        <field name="genedesc" type="text_general" indexed="true" stored="false"/>
+
+        <!-- domain architecture  -->
+        <field name="archids" type="int" indexed="true" stored="false" multiValued="true"/>
+        <!--superfamily is a copy of superarch but tokenized on whitespace-->
+        <field name="superfamily" type="lowercase_ws" indexed="true" stored="false"/>
+        <!-- specific is a copy of specificarch but tokenized on whitespace.-->
+        <field name="specific" type="lowercase_ws" indexed="true" stored="false"/>
+
+        <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
+
+        <field name="payloads" type="payloads" indexed="true" stored="true"/>
+        <field name="_version_" type="long" indexed="true" stored="true"/>
+
+
+
+        <dynamicField name="*_i" type="int" indexed="true" stored="true"/>
+        <dynamicField name="*_is" type="int" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
+        <dynamicField name="*_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_l" type="long" indexed="true" stored="true"/>
+        <dynamicField name="*_ls" type="long" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_t" type="text_general" indexed="true" stored="true"/>
+        <dynamicField name="*_txt" type="text_general" indexed="true" stored="true"
+            multiValued="true"/>
+        <dynamicField name="*_en" type="text_en" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_b" type="boolean" indexed="true" stored="true"/>
+        <dynamicField name="*_bs" type="boolean" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_f" type="float" indexed="true" stored="true"/>
+        <dynamicField name="*_fs" type="float" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_d" type="double" indexed="true" stored="true"/>
+        <dynamicField name="*_ds" type="double" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_dt" type="date" indexed="true" stored="true"/>
+        <dynamicField name="*_dts" type="date" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="*_ti" type="tint" indexed="true" stored="true"/>
+        <dynamicField name="*_tins" type="tint" indexed="true" stored="false"/>
+        <dynamicField name="*_tl" type="tlong" indexed="true" stored="true"/>
+        <dynamicField name="*_tf" type="tfloat" indexed="true" stored="true"/>
+        <dynamicField name="*_td" type="tdouble" indexed="true" stored="true"/>
+        <dynamicField name="*_tdt" type="tdate" indexed="true" stored="true"/>
+        <dynamicField name="ignored_*" type="ignored" multiValued="true"/>
+        <dynamicField name="attr_*" type="text_general" indexed="true" stored="true"
+            multiValued="true"/>
+        <dynamicField name="random_*" type="random"/>
+        <dynamicField name="*" type="ignored" multiValued="true"/>
+    </fields>
+    
+    <uniqueKey>id</uniqueKey>
+    <types>
+        <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
+        <fieldType name="string_caseinsensitive" class="solr.TextField">    
+            <analyzer>
+                <tokenizer class="solr.LowerCaseTokenizerFactory"/>     
+            </analyzer>
+        </fieldType>
+        <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+        <fieldType name="int" class="solr.TrieIntField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" positionIncrementGap="0"/>
+        <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" positionIncrementGap="0"/>
+        <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0"/>
+        <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" positionIncrementGap="0"/>
+        <fieldType name="date" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
+        <fieldtype name="binary" class="solr.BinaryField"/>
+        <fieldType name="random" class="solr.RandomSortField" indexed="true" />
+        <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            </analyzer>
+        </fieldType>
+        <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+                <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+        </fieldType>
+        <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+                <filter class="solr.LowerCaseFilterFactory"/>
+                <filter class="solr.EnglishPossessiveFilterFactory"/>
+                <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+                <filter class="solr.PorterStemFilterFactory"/>
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+                <filter class="solr.EnglishPossessiveFilterFactory"/>
+                <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+                <filter class="solr.PorterStemFilterFactory"/>
+            </analyzer>
+        </fieldType>
+        
+        <fieldType name="text_en_splitting" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true">
+            <analyzer type="index">
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+                <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+                <filter class="solr.PorterStemFilterFactory"/>
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+                <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+                <filter class="solr.PorterStemFilterFactory"/>
+            </analyzer>
+        </fieldType>
+        
+        <fieldType name="text_en_splitting_tight" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true">
+            <analyzer>
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+                <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+                <filter class="solr.EnglishMinimalStemFilterFactory"/>
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+            </analyzer>
+        </fieldType>
+        <fieldType name="text_general_rev" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+                <filter class="solr.LowerCaseFilterFactory"/>
+                <filter class="solr.ReversedWildcardFilterFactory" withOriginal="true"
+                    maxPosAsterisk="3" maxPosQuestion="2" maxFractionAsterisk="0.33"/>
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+                <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+        </fieldType>
+        
+        <fieldType name="alphaOnlySort" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+            <analyzer>
+                <tokenizer class="solr.KeywordTokenizerFactory"/>     
+                <filter class="solr.LowerCaseFilterFactory" />        
+                <filter class="solr.TrimFilterFactory" />       
+                <filter class="solr.PatternReplaceFilterFactory"  pattern="([^a-z])" replacement="" replace="all" />
+            </analyzer>
+        </fieldType>
+        
+        <fieldtype name="phonetic" stored="false" indexed="true" class="solr.TextField">
+            <analyzer>
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.DoubleMetaphoneFilterFactory" inject="false"/>
+            </analyzer>
+        </fieldtype>
+        <fieldtype name="payloads" stored="false" indexed="true" class="solr.TextField" >
+            <analyzer>
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>        
+                <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="float"/>
+            </analyzer>
+        </fieldtype>
+        <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>
+                <tokenizer class="solr.KeywordTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory" />
+            </analyzer>
+        </fieldType>
+        
+        <fieldType name="lowercase_ws" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory" />
+            </analyzer>
+        </fieldType>    
+        
+        <fieldType name="descendent_path" class="solr.TextField">
+            <analyzer type="index">
+                <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.KeywordTokenizerFactory" />
+            </analyzer>
+        </fieldType>    
+        <fieldType name="ancestor_path" class="solr.TextField">
+            <analyzer type="index">
+                <tokenizer class="solr.KeywordTokenizerFactory" />
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
+            </analyzer>
+        </fieldType>    
+        <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" /> 
+        <fieldType name="text_dd_lcnows" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <tokenizer class="solr.KeywordTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.KeywordTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+        </fieldType>
+        
+        <fieldType name="matchstring_tanimoto" class="solr.TextField" omitNorms="false">   
+            <similarity class="org.apache.lucene.analysis.tanimoto.OverlapSimilarity"/> 
+            <analyzer  type="index">         
+                <tokenizer class="solr.PatternTokenizerFactory" pattern="\|"/>
+                <filter class="solr.LowerCaseFilterFactory" />       
+            </analyzer>
+            <analyzer  type="query">
+                <tokenizer class="solr.PatternTokenizerFactory" pattern="\|"/>
+                <filter class="solr.LowerCaseFilterFactory" />       
+            </analyzer>
+        </fieldType> 
+        <fieldType name="matchstring_tervsky" class="solr.TextField" omitNorms="true">  
+            <analyzer>         
+                <tokenizer class="solr.PatternTokenizerFactory" pattern="\|"/>        
+            </analyzer> 
+            <similarity class="org.apache.lucene.analysis.tanimoto.OverlapSimilarity"/>
+        </fieldType> 
+
+
+        <fieldType name="sequence" class="solr.TextField" omitNorms="false">   
+            <similarity class="org.apache.lucene.analysis.tanimoto.OverlapSimilarity"/> 
+            <analyzer  type="index">         
+                <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/good_one.11.index" skip="5"/>
+                <filter class="solr.LowerCaseFilterFactory" />       
+            </analyzer>
+            <analyzer  type="query">
+                 <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/good_one.11.index" skip="5"/>
+                <filter class="solr.LowerCaseFilterFactory" />       
+            </analyzer>
+        </fieldType> 
+       
+    </types>
+    <similarity class="solr.SchemaSimilarityFactory"/>
+</schema>
+

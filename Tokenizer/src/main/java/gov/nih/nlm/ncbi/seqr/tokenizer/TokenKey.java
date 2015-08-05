@@ -1,7 +1,7 @@
 package gov.nih.nlm.ncbi.seqr.tokenizer;
 import java.util.*;
 public class TokenKey {
-	private char []tk;
+    private char []tk;
     private int l; // the number of letters in one gov.nih.nlm.ncbi.tokenkey
     public TokenKey(String str){
         // generate char[] from input 5-letter string (AAAAC)
@@ -13,18 +13,18 @@ public class TokenKey {
         l=token.length;
         tk = token;
         for (int i =0; i<l;i++){
-          if (Character.isLowerCase(tk[i])){
-             tk[i]=Character.toUpperCase(tk[i]);
-           }
-      }
+            if (Character.isLowerCase(tk[i])){
+                tk[i]=Character.toUpperCase(tk[i]);
+            }
+        }
     }
     public TokenKey(){// default
         l = 0;
         tk = null;
-}
+    }
     public boolean isFullkey(){
         // check whether the key has five letters
-        return (l==5);  
+        return (l==5);
     }
 
     public Integer getKey(Hashtable<Character,Integer> ptable){
@@ -34,11 +34,11 @@ public class TokenKey {
         for (int i=0;i<l;i++){
             Integer tv = ptable.get(tk[i]); // look up the value in the protein letter table
             if (tv!=null){
-              //For example,  'AAACC' is 0*20^4 + 0*20^3 + 0*20^2 + 1*20^1 + 1*20^0 = 21, so the indexing term for 'AAACC' is the 22nd integer in the index file.
-                sum = sum + tv*(int)(Math.pow(20,(4-i))); 
+                //For example,  'AAACC' is 0*20^4 + 0*20^3 + 0*20^2 + 1*20^1 + 1*20^0 = 21, so the indexing term for 'AAACC' is the 22nd integer in the index file.
+                sum = sum + tv*(int)(Math.pow(20,(4-i)));
             }
-            else return null;
+            else return -1;
         }
-            return Integer.valueOf(sum);
+        return Integer.valueOf(sum);
     }
 }

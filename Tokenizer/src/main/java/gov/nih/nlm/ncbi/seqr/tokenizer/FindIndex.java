@@ -43,7 +43,8 @@ public class FindIndex {
                 //System.out.println(tk.getKey(ptable)); // check whether the key is caomputed correctly
                 //indexvalue = mem.getInt(4*tk.getKey(ptable));
                 //System.out.println(indexvalue);
-                keyindex.add(indexkey);
+                if (indexkey!=-1){
+                keyindex.add(indexkey);}
             }
         }catch (Exception e){
             System.out.println("Failed: read in the sequence data file");
@@ -64,7 +65,7 @@ public class FindIndex {
 
     public int[] getIndex(String s){
         // s: index file name; return the index
-        long bufferSize = 3200000;
+        long bufferSize = 3368800*4;
         FileChannel fc = null;
         MappedByteBuffer mem = null;
 
