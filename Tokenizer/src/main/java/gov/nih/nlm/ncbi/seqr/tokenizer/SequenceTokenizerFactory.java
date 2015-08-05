@@ -87,8 +87,8 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
             if (f.exists()) return this.getMappedByteBuffer();
 
             InputStream is = loader.openResource(seqrIndexerFiles);
-            System.out.println("load 1.....");
-            logger.info("load seqr index file from solr loader : " + seqrIndexerFiles);
+
+            logger.info("getMappedByteBuffer(ResourceLoader loader): load seqr index file from solr loader : " + seqrIndexerFiles);
             fc = new RandomAccessFile(f, "rw").getChannel();
             //reader = new InputStreamReader(new FileInputStream(filename));
             mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
@@ -113,7 +113,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
             File f = new File(seqrIndexerFiles);
             if (!f.exists()) f = new File(this.getClass().getResource(seqrIndexerFiles).getFile());
 
-            logger.info("file loaded: " + seqrIndexerFiles);
+            logger.info("getMappedByteBuffer() file loaded: " + seqrIndexerFiles);
             fc = new RandomAccessFile(f, "rw").getChannel();
             //reader = new InputStreamReader(new FileInputStream(filename));
             mem = fc.map(FileChannel.MapMode.READ_ONLY, 0, bufferSize);
@@ -121,7 +121,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
             return mem;
         } catch (Exception e) {
             e.printStackTrace();
-            logger.error("Failed: read in the index file:" + seqrIndexerFiles);
+            logger.error("getMappedByteBuffer() Failed: read in the index file:" + seqrIndexerFiles);
             return null;
         }
     }
