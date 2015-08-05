@@ -93,7 +93,7 @@ optional arguments:
   --outfmt FORMAT [FORMAT ...]
                          options for formatted output
                          
-$ seqr index
+$ seqr index -h
 usage: seqr -d SOLR_URL_OR_PATH index [-h] input_files [input_files ...]
 
 positional arguments:
