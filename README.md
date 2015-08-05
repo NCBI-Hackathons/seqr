@@ -107,11 +107,10 @@ optional arguments:
                              13 = JSON Blast output,
                              14 = XML2 Blast output,
                              15 = SAM Blast output
-                         Optional include space delimited list of fields
+                         Optionally, include space delimited list of fields
                          to include in output after the number. Order
-                         will be respected.
-                         e.g.   -outfmt    "42    all_the_fish   thanks_for
-                         so_long_and"
+                         will be respected. e.g.
+                         -outfmt "42 all_the_fish thanks_for so_long_and"
                          
 $ seqr index -h
 usage: seqr -d SOLR_URL_OR_PATH index [-h] input_files [input_files ...]
