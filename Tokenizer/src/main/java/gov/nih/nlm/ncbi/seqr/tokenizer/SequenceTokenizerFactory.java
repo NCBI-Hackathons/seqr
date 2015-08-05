@@ -78,7 +78,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
 
     private MappedByteBuffer getMappedByteBuffer(ResourceLoader loader) {
 
-        long bufferSize = 3200000;
+        long bufferSize = 3368800*4;
         FileChannel fc = null;
         try {
             File f = new File(seqrIndexerFiles);
@@ -106,7 +106,7 @@ public class SequenceTokenizerFactory extends TokenizerFactory implements Resour
         if (seqrIndexerFiles.isEmpty()) {
             return null;
         }
-        long bufferSize = 3200000;
+        long bufferSize = 3368800*4;
         FileChannel fc = null;
         //read the index array from the file index;
         try {
