@@ -1,19 +1,19 @@
-//package findindex;
+package gov.nih.nlm.ncbi.seqr.tokenizer;
 import java.util.*;
-public class tokenkey {
+public class TokenKey {
 	private char []tk;
-    private int l; // the number of letters in one tokenkey
-    public tokenkey(String str){
+    private int l; // the number of letters in one gov.nih.nlm.ncbi.tokenkey
+    public TokenKey(String str){
         // generate char[] from input 5-letter string (AAAAC)
         l = str.length();
         tk = new char[l];
         tk=(str.toUpperCase()).toCharArray(); //convert the string inputs to uppercase
     }
-    public tokenkey(char[] token){// it turns out that BufferedReader Method can take a char[]
+    public TokenKey(char[] token){// it turns out that BufferedReader Method can take a char[]
         l=token.length;
         tk = token;
     }
-    public tokenkey(){// default 
+    public TokenKey(){// default
         l = 0;
         tk = null;
 }
