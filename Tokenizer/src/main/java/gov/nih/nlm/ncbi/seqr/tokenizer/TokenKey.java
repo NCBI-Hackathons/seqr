@@ -12,6 +12,11 @@ public class TokenKey {
     public TokenKey(char[] token){// it turns out that BufferedReader Method can take a char[]
         l=token.length;
         tk = token;
+        for (int i =0; i<l;i++){
+          if (Character.isLowerCase(tk[i])){
+             tk[i]=Character.toUpperCase(tk[i]);
+           }
+      }
     }
     public TokenKey(){// default
         l = 0;

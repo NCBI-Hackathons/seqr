@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.StringJoiner;
+import java.lang.*;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -42,11 +43,14 @@ public class Output {
     public static final int SAM_BLAST_OUTPUT                    = 15;
 
     private static final String NEW_LINE = System.getProperty("line.separator");
-    private static final String CSV_DELIMITER = ",";
+    private static final String COMMA_DELIMITER = ",";
+    private static final String COMMA_SPACE_DELIMITER = ", ";
+    private static final String TAB_DELIMITER = "\t";
 
     private Writer writer;
     private int style = COMMA_SEPARATED_VALUES;
     private List<String> fields;
+    private boolean wroteHeader = false;
 
     public void setStyle (int style) { this.style = style; }
     public int getStyle () { return style; }
@@ -63,18 +67,24 @@ public class Output {
 
     private void writeCsv(SolrDocument sd) throws IOException {
         checkFields(sd);
+
+        StringJoiner joiner = new StringJoiner(COMMA_DELIMITER);
         for(String field : getFields()) {
-            writeOut(sd.getFieldValue(field).toString());
-            writeOut(",");
+            joiner.add(sd.getFieldValue(field).toString());
         }
+
+        writeOut(joiner.toString());
         writeOut(NEW_LINE);
     }
     private void writeTab(SolrDocument sd) throws IOException {
         checkFields(sd);
+
+        StringJoiner joiner = new StringJoiner(TAB_DELIMITER);
         for(String field : getFields()) {
-            writeOut(sd.getFieldValue(field).toString());
-            writeOut("\t");
+            joiner.add(sd.getFieldValue(field).toString());
         }
+
+        writeOut(joiner.toString());
         writeOut(NEW_LINE);
     }
     private void writeJson(SolrDocument sd) throws IOException {
@@ -87,7 +97,7 @@ public class Output {
 
         writeOut(obj.toJSONString());
     }
-    private void writeXml(SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
+    private void writeXml(SolrDocument sd) throws ParserConfigurationException, TransformerException {
         checkFields(sd);
 
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -123,39 +133,38 @@ public class Output {
         writeHeader(versionSeqr, versionSolr, queryName, databaseName, getFields(), hits);
     }
     public void writeHeader(String versionSeqr, String versionSolr, String queryName, String databaseName, List<String> fields, int hits) throws IOException {
+        if(wroteHeader) { return; }
+
         setFields(fields);
-        StringJoiner joiner = new StringJoiner(CSV_DELIMITER);
+        StringJoiner joiner = new StringJoiner(COMMA_SPACE_DELIMITER);
         for(String s : getFields()) {
             joiner.add(s);
         }
         String fieldNames = joiner.toString();
 
-        writeOut("# SEQR " + versionSeqr + "\n" +
-                "# SOLR " + versionSolr + "\n" +
-                "# Query: " + queryName + "\n" +
-                "# Database: " + databaseName + "\n" +
-                "# Fields: " + fieldNames + "\n" +
-                "# " + Integer.toString(hits) + " hits found" + "\n");
+        writeOut("# SEQR " + versionSeqr + NEW_LINE +
+                "# SOLR " + versionSolr + NEW_LINE +
+                "# Query: " + queryName + NEW_LINE +
+                "# Database: " + databaseName + NEW_LINE +
+                "# Fields: " + fieldNames + NEW_LINE +
+                "# " + Integer.toString(hits) + " hits found" + NEW_LINE);
+
+        wroteHeader = !wroteHeader;
     }
     public void write (SolrDocument sd) throws IOException, ParserConfigurationException, TransformerException {
         switch (getStyle()) {
             case PAIRWISE:
-
-                break;
+                throw new UnsupportedOperationException("Pairwise is unimplemented");
             case QUERY_ANCHORED_SHOWING_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Query anchored showing identities is unimplemented");
             case QUERY_ANCHORED_NO_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Query anchored, no identities is unimplemented");
             case FLAT_QUERY_ANCHORED_SHOW_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Flat query anchored showing identities is unimplemented");
             case FLAT_QUERY_ANCHORED_NO_IDENTITIES:
-
-                break;
+                throw new UnsupportedOperationException("Flat query anchored, no identities is unimplemented");
             case XML_BLAST_OUTPUT:
-
+                writeXml(sd);
                 break;
             case TABULAR:
                 writeTab(sd);
@@ -165,19 +174,16 @@ public class Output {
                 writeTab(sd);
                 break;
             case TEXT_ASN_1:
-
-                break;
+                throw new UnsupportedOperationException("Text ASN.1 is unimplemented");
             case BINARY_ASN_1:
-
-                break;
+                throw new UnsupportedOperationException("Binary ASN.1 is unimplemented");
             case COMMA_SEPARATED_VALUES:
                 writeCsv(sd);
                 break;
             case BLAST_ARCHIVE_FORMAT_ASN_1:
-
-                break;
+                throw new UnsupportedOperationException("Blast archive format ASN.1 is unimplemented");
             case JSON_SEQALIGN_OUTPUT:
-
+                writeJson(sd);
                 break;
             case JSON_BLAST_OUTPUT:
                 writeJson(sd);
@@ -186,8 +192,7 @@ public class Output {
                 writeXml(sd);
                 break;
             case SAM_BLAST_OUTPUT:
-
-                break;
+                throw new UnsupportedOperationException("SAM output is unimplemented");
             default:
                 writeCsv(sd);
                 break;
@@ -199,8 +204,15 @@ public class Output {
         this.style = style;
         this.fields = fields;
     }
+    public Output(Writer writer, List<String> fields) {
+        this.writer = writer;
+        this.fields = fields;
+    }
     public Output(Writer writer, int style) {
         this.writer = writer;
         this.style = style;
+    }
+    public Output(Writer writer) {
+        this.writer = writer;
     }
 }
