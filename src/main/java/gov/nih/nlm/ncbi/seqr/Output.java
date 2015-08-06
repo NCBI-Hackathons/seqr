@@ -8,6 +8,7 @@ import java.io.Writer;
 import java.util.List;
 import java.util.StringJoiner;
 
+import org.apache.solr.common.SolrDocumentList;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Attr;

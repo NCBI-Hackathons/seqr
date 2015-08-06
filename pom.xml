@@ -6,17 +6,15 @@
     <artifactId>seqr</artifactId>
     <version>4.10.4-SNAPSHOT</version>
     <packaging>jar</packaging>
-
-    <name>seqr-application</name>
-    <url>http://maven.apache.org</url>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <exec.mainClass>gov.nih.nlm.ncbi.seqr.Seqr</exec.mainClass>
-        <solr.version>4.10.4</solr.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+  <name>seqr-application</name>
+  <url>http://maven.apache.org</url>
+  <properties>
+      <maven.compiler.source>1.8</maven.compiler.source>
+      <maven.compiler.target>1.8</maven.compiler.target>
+      <solr.version>4.10.4</solr.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <exec.mainClass>gov.nih.nlm.ncbi.seqr.Seqr</exec.mainClass>
+  </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
