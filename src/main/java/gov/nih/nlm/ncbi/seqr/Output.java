@@ -27,8 +27,7 @@ public class Output {
 
     // Help information
     public static final String OUTPUTHELP =
-            "Blast+ style output format codes are used.\n" +
-            "   Include one number from below:\n" +
+            "Blast+ style output format codes are used. Include one number from below:\n" +
             "     0 = pairwise,\n" +
             "     1 = query-anchored showing identities,\n" +
             "     2 = query-anchored no identities,\n" +
@@ -45,9 +44,7 @@ public class Output {
             "    13 = JSON Blast output,\n" +
             "    14 = XML2 Blast output,\n" +
             "    15 = SAM Blast output\n" +
-            "Optionally, include space delimited list of fields\n" +
-            "to include in output after the number. Order\n" +
-            "will be respected. e.g.\n" +
+            "Optionally, include space delimited list of fields to include in output after the number. Order will be respected. e.g.\n" +
             "-outfmt \"42 all_the_fish thanks_for so_long_and\"";
 
     // Blast+ style output format codes
