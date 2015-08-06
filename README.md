@@ -1,5 +1,5 @@
 # SEQR - SEQuence Retreival tool
-https://travis-ci.org/averagehat/seqr_hackathon_v002.svg
+[![Build Status](https://travis-ci.org/averagehat/seqr_hackathon_v002.svg?branch=master)](https://travis-ci.org/averagehat/seqr_hackathon_v002)
 ## Super-fast protein sequence similarity search, based on [Solr](http://lucene.apache.org/solr/).
 
 The underlying concept of the project is based on the SEQR application, developed at NCBI, which finds similar protein sequences for a given query protein sequence by using indexes.  This allows it to quickly retrieve similar sequences and makes it easy to combine with other indices like taxonomy which is useful in subsetting the data returned.  Making a command line version of this algorithm has applications in many types of bioinformatics data pipelines, in a similar fashion to how BLAST and eutils are used. 
