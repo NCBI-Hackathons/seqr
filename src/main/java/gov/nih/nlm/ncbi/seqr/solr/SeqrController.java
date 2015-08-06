@@ -1,4 +1,9 @@
-package gov.nih.nlm.ncbi.seqr.solr;
+package gov.nih.nlm.ncbi.seqr;
+import com.sun.org.apache.xpath.internal.operations.Mod;
+import gov.nih.nlm.ncbi.seqr.solr.LoadLargeFile2SolrServer;
+import org.apache.solr.client.solrj.ResponseParser;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -11,8 +16,15 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import java.util.Collection;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableMap;
+import org.apache.solr.core.CoreContainer;
 
 /**
  * Created by michaelpanciera on 8/4/15.
@@ -83,7 +95,10 @@ public class SeqrController {
     }
 
     public String sequenceQueryFromInts(List<Integer> ints) {
-        return "matchstring:" + ints;
+        String commaSeparatedNumbers = ints.stream()
+                .map(i -> i.toString())
+                .collect(Collectors.joining(" "));
+        return "matchstring:" + "\"(" + ints + "\")";
 
     }
     /* API Functions */
@@ -106,5 +121,10 @@ public class SeqrController {
 
     public SolrDocumentList index(String proteinSequence) {
         return null;
+    }
+
+    public SolrDocumentList search(String seq) throws Exception {
+        String query = "sequence" + ":" + seq;
+        return makeQuery(query).getResults();
     }
 }

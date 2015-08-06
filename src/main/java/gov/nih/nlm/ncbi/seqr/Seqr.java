@@ -1,8 +1,5 @@
 package gov.nih.nlm.ncbi.seqr;
 
-import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
-import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,7 +27,6 @@ import net.sourceforge.argparse4j.inf.Subparser;
 import net.sourceforge.argparse4j.inf.Subparsers;
 
 import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrDocument;
@@ -38,7 +34,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.core.sequence.io.FastaReaderHelper;
-import gov.nih.nlm.ncbi.seqr.tokenizer.FindIndex;
 
 
 public class Seqr {
@@ -49,8 +44,6 @@ public class Seqr {
     
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
-    private static final String COLLECTION = "Sequence";
-    
 
     
     public static void main(final String[] args) {
@@ -59,8 +52,8 @@ public class Seqr {
 
         try {
             Namespace space = parser.parseArgs(args);
-            handleCommand(space);
             System.out.println(space);
+            handleCommand(space);
         } catch (ArgumentParserException e) {
         	System.out.println(e);
             parser.printHelp();
@@ -68,8 +61,11 @@ public class Seqr {
         } catch (URISyntaxException e) {
 			System.out.println("Couldn't parse Solr server path or address.");
 			System.exit(1);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
 		}
-    }
+	}
 
 	private static ArgumentParser buildParser() {
 		ArgumentParser parser = ArgumentParsers.newArgumentParser("seqr")
@@ -84,7 +80,7 @@ public class Seqr {
         Subparser index = subprsrs.addParser("index").help("create an index");
         
         //add options for search
-        search.addArgument("query_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).dest("input_file").help("query file for input").metavar("QUERY FASTA");
+        search.addArgument("query_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).dest("input_file").help("query file for input").required(true);
         search.addArgument("-n", "--is_dna").action(Arguments.storeTrue()).help("Input FASTA is DNA nucleotide, not protein");
         search.addArgument("--solr_query").type(String.class).help("filtering query in Solr query language");
         search.addArgument("--index_file").type(Arguments.fileType().verifyCanRead()).help("pre-calculated index file");
@@ -171,7 +167,7 @@ public class Seqr {
     }
 
     
-    public static void handleCommand(Namespace space) throws URISyntaxException {
+    public static void handleCommand(Namespace space) throws Exception {
     	//set up server
     	String solrString = space.getString("solr_url_or_path");
     	URI solrUri = new URI(solrString);
@@ -184,7 +180,7 @@ public class Seqr {
     		//solr server is local
     		CoreContainer container = new CoreContainer(solrString);
             container.load();
-           	solrServer = new EmbeddedSolrServer(container, COLLECTION);
+           	solrServer = new EmbeddedSolrServer(container, "sequence");
     	}
     	
     	//handle outfmt if present
@@ -262,22 +258,20 @@ public class Seqr {
     	
     	
     	
-    	SeqrController control = new SeqrController(solrServer);
+    	gov.nih.nlm.ncbi.seqr.SeqrController control = new gov.nih.nlm.ncbi.seqr.SeqrController(solrServer);
     	SolrControllerAction action = null;
     	
     	SolrControllerAction search = new SolrControllerAction(){
 
-			public SolrDocumentList act(String seq) throws SolrServerException{
-				List<Integer> inds = new ArrayList<Integer>();
-				inds = FindIndex.hashIndex(seq);
-				return control.search(inds, space.getInt("start_alignments"), space.getInt("num_alignments"));
+			public SolrDocumentList act(String seq) throws Exception {
+				return control.search(seq);
 			}
     		
     	};
     	
     	SolrControllerAction index = new SolrControllerAction(){
 
-			public SolrDocumentList act(String seq) throws SolrServerException{
+			public SolrDocumentList act(String seq) {
 				return control.index(seq);
 			}
     		
@@ -301,13 +295,10 @@ public class Seqr {
     			ProteinSequence seq = contig.getValue();
     			String protSeq = seq.getSequenceAsString();
     			try {
-    				SolrDocumentList solrDocList = action.act(protSeq);
-					for (SolrDocument doc : solrDocList){
+					for (SolrDocument doc : action.act(protSeq)) {
 						outputter.write(doc);
 					}
-				} catch (SolrServerException e) {
-					e.printStackTrace();
-				}catch (IOException e) {
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (ParserConfigurationException e) {
@@ -323,9 +314,9 @@ public class Seqr {
     	
     }
 
-    protected interface SolrControllerAction{
 
-		abstract SolrDocumentList act(String seq) throws SolrServerException;
+    protected interface SolrControllerAction{
+    	abstract SolrDocumentList act(String seq) throws Exception;
     }
 
 

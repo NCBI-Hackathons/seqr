@@ -216,10 +216,6 @@ public class Seqr {
             execQuery = (s) -> controller.makeQuery(s, space.get("num_rows"));
         }
         queries.stream().map(execQuery);
-
-
-
-
     	//pass on to appropriate subcommand
     	System.out.println(solrServer);
     	System.out.println("finished");
