@@ -1,5 +1,6 @@
 package gov.nih.nlm.ncbi.seqr;
 
+import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrDocument;
@@ -16,7 +17,7 @@ import org.junit.Before;
 import java.io.IOException;
 
 public class TestMain {
-    private gov.nih.nlm.ncbi.seqr.SeqrController control;
+    private SeqrController control;
     EmbeddedSolrServer solrServer;
 
     @Before
@@ -25,7 +26,7 @@ public class TestMain {
         CoreContainer container = new CoreContainer(solrString);
         container.load();
         solrServer = new EmbeddedSolrServer(container, "sequence");
-        control = new gov.nih.nlm.ncbi.seqr.SeqrController(solrServer);
+        control = new SeqrController(solrServer);
         control.loadJSONDir("testdata/data");
     }
 

@@ -1,4 +1,4 @@
-package gov.nih.nlm.ncbi.seqr;
+package gov.nih.nlm.ncbi.seqr.solr;
 import com.sun.org.apache.xpath.internal.operations.Mod;
 import gov.nih.nlm.ncbi.seqr.solr.LoadLargeFile2SolrServer;
 import org.apache.solr.client.solrj.ResponseParser;
