@@ -29,6 +29,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 import net.sourceforge.argparse4j.inf.Subparsers;
 
+import net.sourceforge.argparse4j.internal.HelpScreenException;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -58,9 +59,11 @@ public class Seqr {
         ArgumentParser parser = buildParser();
 
         try {
-            Namespace space = parser.parseArgs(args);
-            handleCommand(space);
-            System.out.println(space);
+			Namespace space = parser.parseArgs(args);
+			handleCommand(space);
+			System.out.println(space);
+		} catch (HelpScreenException e) {
+			System.exit(0);
         } catch (ArgumentParserException e) {
         	System.out.println(e);
             parser.printHelp();
