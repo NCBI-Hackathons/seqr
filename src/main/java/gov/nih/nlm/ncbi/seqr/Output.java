@@ -176,7 +176,7 @@ public class Output {
         checkFields(sd);
 
         String versionSeqr  = Seqr.getVersion();
-        String versionSolr  = "4.10.4";
+        String versionSolr  = Seqr.getVersionSolr();
         String queryName    = sd.getFieldValue("defline").toString();
         String databaseName = "refseq_protein.00";
 

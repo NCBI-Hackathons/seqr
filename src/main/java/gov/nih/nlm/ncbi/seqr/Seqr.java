@@ -37,6 +37,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
+import org.apache.solr.handler.admin.SystemInfoHandler;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.core.sequence.io.FastaReaderHelper;
 import gov.nih.nlm.ncbi.seqr.tokenizer.FindIndex;
@@ -45,8 +46,9 @@ import gov.nih.nlm.ncbi.seqr.tokenizer.FindIndex;
 public class Seqr {
 
     private static SolrServer solrServer;
-    
-    private static String version = "0.0.1a";
+
+	private static String version = "0.0.1a";
+	private static String versionSolr;
     
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
@@ -169,10 +171,14 @@ public class Seqr {
     public static SolrServer getSolrServer(){
         return solrServer;
     }
-    
-    public static String getVersion(){
-    	return version;
-    }
+
+	public static String getVersion(){
+		return version;
+	}
+
+	public static String getVersionSolr(){
+		return versionSolr;
+	}
 
     
     public static void handleCommand(Namespace space) throws URISyntaxException {
@@ -189,6 +195,9 @@ public class Seqr {
     		CoreContainer container = new CoreContainer(solrString);
             container.load();
            	solrServer = new EmbeddedSolrServer(container, COLLECTION);
+
+			SystemInfoHandler sih = new SystemInfoHandler(container);
+			versionSolr = sih.getVersion();
     	}
     	
     	//handle outfmt if present
