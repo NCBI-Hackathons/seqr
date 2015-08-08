@@ -5,6 +5,9 @@ import org.apache.solr.common.SolrDocument;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -93,9 +96,8 @@ public class Output {
 
     // Save initial ordering of fields for later use
     private void checkFields(SolrDocument sd) {
-        if(fields == null | fields.isEmpty()) {
-            setFields((List<String>) sd.getFieldNames());
-        }
+        if(fields == null || fields.isEmpty())
+            setFields( new ArrayList<String>(sd.getFieldNames()));
     }
 
     // Write String to writer, moved here in case you want to do error handling here in the future

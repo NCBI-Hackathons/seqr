@@ -50,7 +50,7 @@ public class Seqr {
     
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
-    private static final String COLLECTION = "Sequence";
+    private static final String COLLECTION = "sequence";
     
 
     
@@ -99,30 +99,31 @@ public class Seqr {
         
         //add required, options for index
         index.addArgument("input_files").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).nargs("+").required(true);
-        
-        parser.addArgument("-d", "--db").type(String.class).dest("solr_url_or_path").help("URL of Solr server, or path to Solr directory").required(true);
-        
+
+        search.addArgument("-d", "--db").type(String.class).dest("solr_url_or_path").help("URL of Solr server, or path to Solr directory").required(true);
+        index.addArgument("-d", "--db").type(String.class).dest("solr_url_or_path").help("URL of Solr server, or path to Solr directory").required(true);
+
         //add version
         parser.addArgument("--version").action(Arguments.version());
         parser.addArgument("--citation").action(Arguments.storeTrue());
-        
-        
-        
+
+
+
         //add options
         parser.addArgument("-o", "--out").type(Arguments.fileType()).dest("output_file").help("path to output directory");
-        
+
         //add flags
         parser.addArgument("--parse_deflines").help("derive metadata from FASTA deflines and comments").action(Arguments.storeTrue());;
-        
+
         
         //add unused flags
        
         unused.addArgument("--html").help("unused").action(Arguments.storeTrue());
-        unused.addArgument("--lcase_masking").help("unused").action(Arguments.storeTrue());;
-        unused.addArgument("--remote").help("unused").action(Arguments.storeTrue());;
-        unused.addArgument("--show_gis").help("unused").action(Arguments.storeTrue());;
-        unused.addArgument("--ungapped").help("unused").action(Arguments.storeTrue());;
-        unused.addArgument("--use_sw_tback").help("unused").action(Arguments.storeTrue());;
+        unused.addArgument("--lcase_masking").help("unused").action(Arguments.storeTrue());
+        unused.addArgument("--remote").help("unused").action(Arguments.storeTrue());
+        unused.addArgument("--show_gis").help("unused").action(Arguments.storeTrue());
+        unused.addArgument("--ungapped").help("unused").action(Arguments.storeTrue());
+        unused.addArgument("--use_sw_tback").help("unused").action(Arguments.storeTrue());
 
         //add unused options
         unused.addArgument("--import_search_strategy").type(String.class).dest("filename").help("unused").nargs(1);
@@ -215,22 +216,7 @@ public class Seqr {
     	
     	
     	Output outputter = new Output(outstream, outputCode, outputFields);
-    	
-//    	SolrDocument doc = org.mockito.Mockito.mock(SolrDocument.class, org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.RETURNS_SMART_NULLS));
-//    	try {
-//			outputter.write(doc);
-//		} catch (IOException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		} catch (ParserConfigurationException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		} catch (TransformerException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//    	System.exit(0);
-    	
+
     	if (space.get("input_files") != null){
     		List<File> l = space.getList("input_files");
     		for (File f : l){
@@ -245,6 +231,7 @@ public class Seqr {
     	if (space.get("input_file") != null){
     		try {
 				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), (space.getBoolean("is_dna")));
+                inputFastas.add(queryFasta);
 			} catch (IOException ee) {
 				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
 				System.exit(1);
@@ -271,9 +258,15 @@ public class Seqr {
     	SolrControllerAction search = new SolrControllerAction(){
 
 			public SolrDocumentList act(String seq) throws SolrServerException{
-				List<Integer> inds = new ArrayList<Integer>();
-				inds = FindIndex.hashIndex(seq);
-				return control.search(inds, space.getInt("start_alignments"), space.getInt("num_alignments"));
+                try {
+                    return control.search(seq);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+//				List<Integer> inds = new ArrayList<Integer>();
+//				inds = FindIndex.hashIndex(seq);
+//				return control.search(inds, space.getInt("start_alignments"), space.getInt("num_alignments"));
 			}
     		
     	};
@@ -307,6 +300,7 @@ public class Seqr {
     				SolrDocumentList solrDocList = action.act(protSeq);
 					for (SolrDocument doc : solrDocList){
 						outputter.write(doc);
+                        System.out.println(doc);
 					}
 				} catch (SolrServerException e) {
 					e.printStackTrace();
@@ -321,6 +315,9 @@ public class Seqr {
 					e.printStackTrace();
 				}
     		}
+
+            solrServer.shutdown();
+
     	}
 
     	

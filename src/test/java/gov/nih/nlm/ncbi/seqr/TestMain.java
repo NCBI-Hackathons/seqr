@@ -10,6 +10,7 @@ import org.apache.solr.core.CoreContainer;
 //import org.codehaus.jackson.JsonNode;
 
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Before;
@@ -19,21 +20,25 @@ import java.io.IOException;
 public class TestMain {
     private SeqrController control;
     EmbeddedSolrServer solrServer;
-
-    @Before
+CoreContainer container ;
     public void setUp() throws SolrServerException, InterruptedException, IOException {
         String solrString = "testdata/solr";
-        CoreContainer container = new CoreContainer(solrString);
+        container = new CoreContainer(solrString);
         container.load();
         solrServer = new EmbeddedSolrServer(container, "sequence");
         control = new SeqrController(solrServer);
         control.loadJSONDir("testdata/data");
     }
 
+    public void tearDown() {
+        solrServer.shutdown();
+        container.shutdown();
+    }
+
+
     @Test
-    public void testSolrSimple() throws Exception {
-
-
+    public void testAbSolrSimple() throws Exception {
+        setUp();
         String seq = "AGSYLLEELFEGHLEKECWEEICVYEEAREVFEDDETTDEFWRTYMGGSPCASQPCLNNGSCQDSIRGYACTCAPGYEGPNCAFAESECHPLRLDGCQHFCYPGPESYTCSCARGHKLGQDRRSCLPHDRCACGTLGPECCQRPQGSQQNLLPFPWQVKLTNSEGKDFCGGVLIQDNFVLTTATCSLLYANISVKTRSHFRLHVRGVHVHTRFEADTGHNDVALLDLARPVRCPDAGRPVCTADADFADSVLLPQPGVLGGWTLRGREMVPLRLRVTHVEPAECGRALNATVTTRTSCERGAAAGAARWVAGGAVVREHRGAWFLTGLLGAAPPEGPGPLLLIKVPRYALWLRQVTQQPSRASPRGDRGQGRDGEPVPGDRGGRWAPTALPPGPLV";
         SolrDocumentList results = control.search(seq);
         for (SolrDocument document : results) {
@@ -42,4 +47,11 @@ public class TestMain {
         Assert.assertEquals(1, results.size());
         solrServer.shutdown();
     }
+
+    @Test
+    public void testArgParse() {
+        String[] args = {"search",  "testdata/data/test.fasta", "--db", "testdata/solr/"};
+        Seqr.main(args);
+
+        }
 }
