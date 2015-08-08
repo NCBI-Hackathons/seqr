@@ -302,6 +302,7 @@ public class Seqr {
 						outputter.write(doc);
                         System.out.println(doc);
 					}
+					outstream.flush();
 				} catch (SolrServerException e) {
 					e.printStackTrace();
 				}catch (IOException e) {
