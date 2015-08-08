@@ -80,6 +80,7 @@ public class Output {
     private int style = COMMA_SEPARATED_VALUES;
     private List<String> fields;
     private boolean wroteHeader = false;
+    private int total_hits;
 
     // Public get/set methods for locate varibles
     public void setWriter(Writer writer) { this.writer = writer; }
@@ -93,6 +94,9 @@ public class Output {
 
     public void setWroteHeader(boolean wroteHeader) { this.wroteHeader = wroteHeader; }
     public boolean getWroteHeader() { return wroteHeader; }
+
+    public void setTotalHits(int total_hits) { this.total_hits = total_hits; }
+    public int getTotalHits() { return total_hits; }
 
     // Save initial ordering of fields for later use
     private void checkFields(SolrDocument sd) {
@@ -173,10 +177,10 @@ public class Output {
 
         String versionSeqr  = Seqr.getVersion();
         String versionSolr  = "4.10.4";
-        String queryName    = "gi|584277003|ref|NP_001276862.1| ZO-2 associated speckle protein [Homo sapiens]";
+        String queryName    = sd.getFieldValue("defline").toString();
         String databaseName = "refseq_protein.00";
 
-        int hits = 42;
+        int hits = total_hits;
 
         writeHeader(versionSeqr, versionSolr, queryName, databaseName, getFields(), hits);
     }

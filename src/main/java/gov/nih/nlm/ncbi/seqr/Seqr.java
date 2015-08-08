@@ -193,7 +193,7 @@ public class Seqr {
     	
     	//handle outfmt if present
     	List<String> outputFields = null;
-    	Integer outputCode = Output.XML2_BLAST_OUTPUT;
+    	Integer outputCode = Output.TABULAR_WITH_COMMENT_LINES;
     	if (space.get("format") != null){
     		outputFields = space.getList("format");
     		outputCode = Integer.parseInt(outputFields.remove(0));
@@ -298,9 +298,10 @@ public class Seqr {
     			String protSeq = seq.getSequenceAsString();
     			try {
     				SolrDocumentList solrDocList = action.act(protSeq);
+					outputter.setTotalHits(solrDocList.size());
 					for (SolrDocument doc : solrDocList){
 						outputter.write(doc);
-                        System.out.println(doc);
+                        //System.out.println(doc);
 					}
 					outstream.flush();
 				} catch (SolrServerException e) {
