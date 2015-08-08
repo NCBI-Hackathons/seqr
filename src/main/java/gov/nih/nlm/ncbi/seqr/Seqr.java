@@ -48,7 +48,7 @@ public class Seqr {
     private static SolrServer solrServer;
 
 	private static String version = "0.0.1a";
-	private static String versionSolr;
+	private static String versionSolr = "4";
     
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
