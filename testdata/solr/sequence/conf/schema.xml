@@ -13,7 +13,7 @@
         <field name="acxn" type="lowercase" indexed="true" stored="true"/>
         <field name="taxlineage" type="descendent_path" indexed="true" stored="false"/>
         <field name="defline" type="text_general" indexed="true" stored="true"/>
-        <field name="sequence" type="sequence" indexed="true" stored="true"/>
+        <field name="sequence" type="sequence" indexed="true" stored="true" omitTermFreqAndPositions="true"/>
         <field name="md5" type="string" indexed="true" stored="true"/>
         <field name="pig" type="int" indexed="true" stored="false"/>
         <field name="matchstring" type="matchstring_tanimoto" indexed="true" stored="false"
@@ -285,16 +285,28 @@
         </fieldType> 
 
 
-        <fieldType name="sequence" class="solr.TextField" omitNorms="false">   
+<!--         <fieldType name="sequence" class="solr.TextField" omitNorms="false">   
             <similarity class="org.apache.lucene.analysis.tanimoto.OverlapSimilarity"/> 
             <analyzer  type="index">         
-                <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/good_one.11.index" skip="5"/>
+                <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/panfs/pan1.be-md.ncbi.nlm.nih.gov/pubchem_rnd/users/hanl/solr/hackson/SOLR_HOME/lib/good_one.11.index" skip="5"/>
                 <filter class="solr.LowerCaseFilterFactory" />       
             </analyzer>
             <analyzer  type="query">
-                 <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/good_one.11.index" skip="5"/>
+                 <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.SequenceTokenizerFactory" indexer="/panfs/pan1.be-md.ncbi.nlm.nih.gov/pubchem_rnd/users/hanl/solr/hackson/SOLR_HOME/lib/good_one.11.index" skip="5"/>
                 <filter class="solr.LowerCaseFilterFactory" />       
             </analyzer>
+        </fieldType>  -->
+         <fieldType name="sequence" class="solr.TextField" omitNorms="true" >   
+            <similarity class="org.apache.lucene.analysis.tanimoto.OverlapSimilarity"/> 
+            <analyzer >         
+                <tokenizer class="gov.nih.nlm.ncbi.seqr.tokenizer.RawSequence2TokenizerFactory" nmer="5"/>        
+                <filter class="gov.nih.nlm.ncbi.seqr.tokenizer.RemoveDuplicatesTokenFilterIgnorePositionFactory"/> 
+                <filter class="solr.LengthFilterFactory" min="5" max="5" />
+                <filter class="solr.SynonymFilterFactory" synonyms="seqr.txt" ignoreCase="true" expand="false"/>
+                <!-- cut -d ,  -s -f 1 seqr.txt  | sort -u > seqr.keeplist -->
+                <filter class="solr.KeepWordFilterFactory" words="seqr.keeplist" ignoreCase="true"/>
+                <filter class="gov.nih.nlm.ncbi.seqr.tokenizer.RemoveDuplicatesTokenFilterIgnorePositionFactory"/>
+            </analyzer>            
         </fieldType> 
        
     </types>
