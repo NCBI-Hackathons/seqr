@@ -105,6 +105,8 @@
   <requestHandler name="/analysis/document" startup="lazy"  class="solr.DocumentAnalysisRequestHandler" />
   <requestHandler name="/admin/" class="solr.admin.AdminHandlers" />
   <requestHandler name="/admin/ping" class="solr.PingRequestHandler">
+    <!-- relative paths are resolved against the data dir -->
+    <str name="healthcheckFile">server-enabled.txt</str>
     <lst name="invariants">
       <str name="q">*:*</str>
     </lst>
