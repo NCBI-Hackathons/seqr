@@ -2,7 +2,53 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"> 
  <build>
   <plugins>
-   <plugin>
+
+
+
+
+      <!-- Shade / Self-contained JAR -->
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <!-- <version>2.0</version> -->
+          <version>2.2</version>
+          <executions>
+              <execution>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>shade</goal>
+                  </goals>
+                  <configuration>
+                      <!-- <minimizeJar>true</minimizeJar> -->
+                      <minimizeJar>false</minimizeJar>
+                      <transformers>
+                          <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                          <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                              <mainClass>gov.nih.nlm.ncbi.seqr.Seqr</mainClass>
+                          </transformer>
+                      </transformers>
+
+                      <!-- fix SecurityException: Invalid signature file digest for Manifest main attributes -->
+                      <filters>
+                          <filter>
+                              <artifact>*:*</artifact>
+                              <excludes>
+                                  <exclude>META-INF/*.SF</exclude>
+                                  <exclude>META-INF/*.DSA</exclude>
+                                  <exclude>META-INF/*.RSA</exclude>
+                              </excludes>
+                          </filter>
+                      </filters>
+
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
+
+
+
+
+<!--   <plugin>
      <artifactId>maven-assembly-plugin</artifactId>
      <configuration>
        <archive>
@@ -23,7 +69,7 @@
          </goals>
        </execution>
      </executions>
-   </plugin>
+   </plugin> -->
   </plugins>
  </build>
     <modelVersion>4.0.0</modelVersion>
@@ -52,13 +98,11 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-test-framework</artifactId>
             <version>${solr.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
@@ -69,7 +113,6 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-test-framework</artifactId>
             <version>${solr.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
