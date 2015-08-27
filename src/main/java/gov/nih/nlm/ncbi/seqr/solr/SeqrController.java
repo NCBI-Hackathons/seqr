@@ -38,7 +38,7 @@ public class SeqrController {
         this.server = server;
     }
 
-    public QueryResponse makeQuery(String q) throws Exception {
+    public QueryResponse makeQuery(String q) throws SolrServerException {
         return makeQuery(q, DEFAULT_ROWS);
     }
 
@@ -101,30 +101,36 @@ public class SeqrController {
         return "matchstring:" + "\"(" + ints + "\")";
 
     }
+
     /* API Functions */
-    public SolrDocumentList search(List<Integer> rawSequenceInts, Integer page_num, Integer num_rows) throws SolrServerException{
-    	String q = sequenceQueryFromInts(rawSequenceInts);
+    public SolrDocumentList search(List<Integer> rawSequenceInts, Integer page_num, Integer num_rows) throws SolrServerException {
+        String q = sequenceQueryFromInts(rawSequenceInts);
         QueryResponse response = null;
         if (page_num != null && num_rows != null) {
-            response = makeQuery(q, page_num, num_rows );
-        } else if (num_rows != null){
+            response = makeQuery(q, page_num, num_rows);
+        } else if (num_rows != null) {
             response = makeQuery(q, num_rows);
         } else {
             response = makeQuery(q, DEFAULT_ROWS);
         }
-        if (response != null){
-        	return response.getResults();
+        if (response != null) {
+            return response.getResults();
         }
         return null;
     }
-    
+
 
     public SolrDocumentList index(String proteinSequence) {
         return null;
     }
 
-    public SolrDocumentList search(String seq) throws Exception {
+    public SolrDocumentList search(String seq) {
         String query = "sequence" + ":" + seq;
-        return makeQuery(query).getResults();
+        try {
+            return makeQuery(query).getResults();
+        } catch (SolrServerException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
