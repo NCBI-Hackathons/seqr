@@ -4,8 +4,10 @@ env:
      JAVA_OPTS=-Xmx2g
 jdk:
    - oraclejdk8
-#before_script:
-#   
-after_script:
+install: 
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
   - sudo pip install robotframework
-  - pybot scripts/*.robot
+script:
+   - mvn test -B
+  - pybot scripts/*.robot   
+
