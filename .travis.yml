@@ -1,4 +1,7 @@
-language: java 
+language: java
+env:
+   global:
+     JAVA_OPTS=-Xmx2g
 jdk:
    - oraclejdk8
 before_script:
