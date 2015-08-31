@@ -7,5 +7,5 @@ before_install:
 #  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 #  - sudo pip install robotframework
 #script:
-   - mvn test -B
+#   - mvn test -B
   # - pybot scripts/*.robot   
