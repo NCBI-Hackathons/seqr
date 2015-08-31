@@ -1,7 +1,6 @@
 package gov.nih.nlm.ncbi.seqr.nuc;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,7 +69,7 @@ public class DNASequenceStreamMap extends LinkedHashMap<String, ProteinSequence>
 	}
 	
 	
- public static Map<String, ProteinSequence> maybeConvert(FileInputStream fasta, Boolean convert) throws IOException{
+ public static Map<String, ProteinSequence> maybeConvert(File fasta, Boolean convert) throws IOException{
 	 if (convert != null && convert) {
 		 return new DNASequenceStreamMap(FastaReaderHelper.readFastaDNASequence(fasta)); 
 	 } else {

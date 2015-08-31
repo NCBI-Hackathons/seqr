@@ -6,8 +6,7 @@ import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream; 
-import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -17,7 +16,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -55,12 +53,9 @@ public class Seqr {
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
     private static final String COLLECTION = "sequence";
+    
 
-
-	private static final String FASTA = "fasta";
-	private static final String JSON = "json";
-	private static final String CSV = "CSV";
-
+    
     public static void main(final String[] args) {
 
         ArgumentParser parser = buildParser();
@@ -92,8 +87,7 @@ public class Seqr {
         Subparsers subprsrs = parser.addSubparsers().description("SEQR commands").metavar("COMMAND").dest("command");
         Subparser search = subprsrs.addParser("search").help("look for something");
         Subparser index = subprsrs.addParser("index").help("create an index");
-		Subparser load = subprsrs.addParser("load").help("load a JSON/CSV file");
-
+        
         //add options for search
         search.addArgument("query_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).dest("input_file").help("query file for input").metavar("QUERY FASTA");
         search.addArgument("-n", "--is_dna").action(Arguments.storeTrue()).help("Input FASTA is DNA nucleotide, not protein");
@@ -107,9 +101,7 @@ public class Seqr {
         
         //add required, options for index
         index.addArgument("input_files").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).nargs("+").required(true);
-		index.addArgument("file_type").type(String.class).required(true);
 
-		//TODO: fix it so this isn't repeated, not sure why that was broken when it used parser.addArgument
         search.addArgument("-d", "--db").type(String.class).dest("solr_url_or_path").help("URL of Solr server, or path to Solr directory").required(true);
         index.addArgument("-d", "--db").type(String.class).dest("solr_url_or_path").help("URL of Solr server, or path to Solr directory").required(true);
 
@@ -247,8 +239,7 @@ public class Seqr {
     	}
     	if (space.get("input_file") != null){
     		try {
-                    FileInputStream fis = new FileInputStream( (File) space.get("input_file"));
-				queryFasta = DNASequenceStreamMap.maybeConvert(fis, space.getBoolean("is_dna"));
+				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), (space.getBoolean("is_dna")));
                 inputFastas.add(queryFasta);
 			} catch (IOException ee) {
 				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
@@ -268,18 +259,46 @@ public class Seqr {
     		solrQuery = space.getString("solr_query");
     	}
     	
+    	
+    	
     	SeqrController control = new SeqrController(solrServer);
-		Function<String, SolrDocumentList> action = null;
-		if (space.get("command") != null){
+    	SolrControllerAction action = null;
+    	
+    	SolrControllerAction search = new SolrControllerAction(){
+
+			public SolrDocumentList act(String seq) throws SolrServerException{
+                try {
+                    return control.search(seq);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+//				List<Integer> inds = new ArrayList<Integer>();
+//				inds = FindIndex.hashIndex(seq);
+//				return control.search(inds, space.getInt("start_alignments"), space.getInt("num_alignments"));
+			}
+    		
+    	};
+    	
+    	SolrControllerAction index = new SolrControllerAction(){
+
+			public SolrDocumentList act(String seq) throws SolrServerException{
+				return control.index(seq);
+			}
+    		
+    	};
+    	
+    	if (space.get("command") != null){
     		switch(space.getString("command")){
-    			case SEARCH :
-    				action = control::search;
+    			case SEARCH : 
+    				action = search;
     				break;
     			case INDEX :
-    				action = control::index;
+    				action = index;
     				break;
     		}
     	}
+    	
     	
     	for (Map<String, ProteinSequence> fasta : inputFastas){
     		for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()){
@@ -287,17 +306,16 @@ public class Seqr {
     			ProteinSequence seq = contig.getValue();
     			String protSeq = seq.getSequenceAsString();
     			try {
-    				SolrDocumentList solrDocList = action.apply(protSeq);
-                    if (solrDocList == null) {
-                        System.err.println("There was a solr server error.");
-                        quit(1);
-                    }
+    				SolrDocumentList solrDocList = action.act(protSeq);
 					outputter.setTotalHits(solrDocList.size());
 					for (SolrDocument doc : solrDocList){
 						outputter.write(doc);
+                        //System.out.println(doc);
 					}
 					outstream.flush();
-				} catch (IOException e) {
+				} catch (SolrServerException e) {
+					e.printStackTrace();
+				}catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (ParserConfigurationException e) {
@@ -316,9 +334,9 @@ public class Seqr {
     	
     }
 
-    private static void quit(int exitcode) {
-        solrServer.shutdown();
-        System.exit(exitcode);
+    protected interface SolrControllerAction{
+
+		abstract SolrDocumentList act(String seq) throws SolrServerException;
     }
 
 
