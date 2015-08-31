@@ -8,4 +8,4 @@ install:
   - sudo pip install robotframework
 script:
    - mvn test -B
-   - pybot scripts/*.robot   
+  # - pybot scripts/*.robot   
