@@ -5,7 +5,7 @@ before_install:
   - "export JAVA_OPTS=-Xmx2G"
   
 install: 
-   - mvn install
+  - mvn install
 #  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
   - sudo pip install robotframework
 script:
