@@ -1,3 +1,7 @@
 language: java 
 jdk:
    - oraclejdk8
+before_script:
+   sudo pip install robotframework
+script:
+   pybot scripts/*.robot
