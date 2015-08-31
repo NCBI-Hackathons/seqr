@@ -4,7 +4,7 @@ env:
      JAVA_OPTS=-Xmx2g
 jdk:
    - oraclejdk8
-#before_script:
-#   sudo pip install robotframework
-#after_script:
-#   pybot scripts/*.robot
+before_script:
+   sudo pip install robotframework
+after_script:
+   pybot scripts/*.robot
