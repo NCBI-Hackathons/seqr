@@ -7,5 +7,5 @@ jdk:
 #before_script:
 #   
 after_script:
-   sudo pip install robotframework
-   pybot scripts/*.robot
+  - sudo pip install robotframework
+  - pybot scripts/*.robot
