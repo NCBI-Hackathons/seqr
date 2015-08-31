@@ -6,6 +6,19 @@
 
 
 
+      <plugin>
+          <groupId>org.robotframework</groupId>
+          <artifactId>robotframework-maven-plugin</artifactId>
+          <version>1.4.5</version>
+          <executions>
+              <execution>
+                  <goals>
+                      <goal>run</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
+
       <!-- Shade / Self-contained JAR -->
       <plugin>
           <groupId>org.apache.maven.plugins</groupId>
