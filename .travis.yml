@@ -3,6 +3,7 @@ jdk: oraclejdk8
 before_install:  
   - "echo $JAVA_OPTS"
   - "export JAVA_OPTS=-Xmx512m"
+  
 #install: 
 #  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 #  - sudo pip install robotframework
