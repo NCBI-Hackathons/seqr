@@ -1,6 +1,5 @@
 language: java
-jdk:
-   - oraclejdk8
+jdk: oraclejdk8
 before_install:  
   - "echo $JAVA_OPTS"
   - "export JAVA_OPTS=-Xmx512m"
@@ -9,5 +8,4 @@ install:
   - sudo pip install robotframework
 script:
    - mvn test -B
-  - pybot scripts/*.robot   
-
+   - pybot scripts/*.robot   
