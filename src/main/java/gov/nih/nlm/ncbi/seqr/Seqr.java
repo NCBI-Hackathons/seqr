@@ -40,7 +40,6 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.handler.admin.SystemInfoHandler;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.core.sequence.io.FastaReaderHelper;
-import gov.nih.nlm.ncbi.seqr.tokenizer.FindIndex;
 
 
 public class Seqr {
@@ -253,64 +252,29 @@ public class Seqr {
     			throw new java.lang.RuntimeException(e);
     		}
     	}
-    	
-    	String solrQuery = "";
-    	if (space.get("solr_query") != null){
-    		solrQuery = space.getString("solr_query");
-    	}
-    	
+
+		//TODO: implement smarter queries with more specific parameters
+//    	String solrQuery = "";
+//    	if (space.get("solr_query") != null){
+//    		solrQuery = space.getString("solr_query");
+//    	}
     	
     	
     	SeqrController control = new SeqrController(solrServer);
-    	SolrControllerAction action = null;
-    	
-    	SolrControllerAction search = new SolrControllerAction(){
-
-			public SolrDocumentList act(String seq) throws SolrServerException{
-                try {
-                    return control.search(seq);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-//				List<Integer> inds = new ArrayList<Integer>();
-//				inds = FindIndex.hashIndex(seq);
-//				return control.search(inds, space.getInt("start_alignments"), space.getInt("num_alignments"));
-			}
-    		
-    	};
-    	
-    	SolrControllerAction index = new SolrControllerAction(){
-
-			public SolrDocumentList act(String seq) throws SolrServerException{
-				return control.index(seq);
-			}
-    		
-    	};
-    	
-    	if (space.get("command") != null){
-    		switch(space.getString("command")){
-    			case SEARCH : 
-    				action = search;
-    				break;
-    			case INDEX :
-    				action = index;
-    				break;
-    		}
-    	}
-    	
     	
     	for (Map<String, ProteinSequence> fasta : inputFastas){
     		for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()){
-    			String name = contig.getKey();
     			ProteinSequence seq = contig.getValue();
     			String protSeq = seq.getSequenceAsString();
+				String cmd = space.getString("command");
+
+				if (cmd == SEARCH) {
+
     			try {
-    				SolrDocumentList solrDocList = action.act(protSeq);
+    				SolrDocumentList solrDocList = control.search(protSeq);
 					outputter.setTotalHits(solrDocList.size());
 					for (SolrDocument doc : solrDocList){
 						outputter.write(doc);
-                        //System.out.println(doc);
 					}
 					outstream.flush();
 				} catch (SolrServerException e) {
@@ -324,8 +288,14 @@ public class Seqr {
 				} catch (TransformerException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-    		}
+				}
+				else if (cmd == INDEX) {
+					String name = contig.getKey();
+					control.index(name, protSeq);
+				}
 
             solrServer.shutdown();
 
@@ -333,11 +303,5 @@ public class Seqr {
 
     	
     }
-
-    protected interface SolrControllerAction{
-
-		abstract SolrDocumentList act(String seq) throws SolrServerException;
-    }
-
 
 }
