@@ -75,7 +75,8 @@ public class LoadLargeFile2SolrServer {
                     System.out.println(this.JsonToken2SolrInputDocument(node));
                 }
             } catch (Exception e) {
-                logger.error("parsing error " + e.getStackTrace());
+                //logger.error("parsing error " + e.getStackTrace());
+                e.printStackTrace();;
             }
         }
     }
