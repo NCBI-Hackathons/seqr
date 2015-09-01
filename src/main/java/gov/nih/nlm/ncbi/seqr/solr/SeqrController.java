@@ -119,7 +119,7 @@ public class SeqrController {
     }
     
 
-    public SolrDocumentList index(String proteinSequence) {
+    public SolrDocumentList index(String name, String proteinSequence) {
         return null;
     }
 

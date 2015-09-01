@@ -52,8 +52,11 @@ public class Seqr {
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
     private static final String COLLECTION = "sequence";
-    
 
+
+	private static final String FASTA = "fasta";
+	private static final String JSON = "json";
+	private static final String CSV = "CSV";
     
     public static void main(final String[] args) {
 
@@ -296,6 +299,7 @@ public class Seqr {
 					String name = contig.getKey();
 					control.index(name, protSeq);
 				}
+				else
 
             solrServer.shutdown();
 
