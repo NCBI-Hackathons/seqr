@@ -195,11 +195,6 @@
             <version>2.0</version>
         </dependency>
         <dependency>
-            <groupId>org.functionaljava</groupId>
-            <artifactId>functionaljava-java8</artifactId>
-            <version>4.4</version>
-        </dependency>
-        <dependency>
             <groupId>org.biojava</groupId>
             <artifactId>biojava-core</artifactId>
             <version>4.1.0</version>

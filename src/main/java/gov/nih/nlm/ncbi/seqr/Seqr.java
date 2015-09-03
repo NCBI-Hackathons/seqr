@@ -5,7 +5,6 @@ import com.diffplug.common.base.Throwing;
 //import fj.data.Stream;
 import java.util.stream.Stream;
 
-import fj.data.Seq;
 import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
 import gov.nih.nlm.ncbi.seqr.solr.JsonStreamParser;
 import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
