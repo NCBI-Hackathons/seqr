@@ -238,7 +238,9 @@ container = new CoreContainer(solrString);
 					//new HashMap<String, String>() {
 						new SolrInputDocument() {
 						{
-							addField("id", "" + new Random().nextInt());
+							//TODO: At some point, figure out a way to add FASTA sequences that aren't in this format!
+							//NOTE: "id" = GI Number defined by NCBI
+							addField("id", seq.getKey().split("\\|")[1]); //GI number!
 							addField("defline", seq.getValue().getOriginalHeader());
 							addField("sequence", seq.getValue().getSequenceAsString() );
 						}
