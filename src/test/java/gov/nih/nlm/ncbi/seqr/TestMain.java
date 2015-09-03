@@ -48,10 +48,10 @@ CoreContainer container ;
         solrServer.shutdown();
     }
 
-//    @Test
-//    public void testArgParse() {
-//        String[] args = {"search",  "testdata/data/test.fasta", "--db", "testdata/solr/"};
-//        Seqr.main(args);
-//
-//        }
+    @Test
+    public void testArgParse() {
+        String[] args = {"search",  "testdata/data/test.fasta", "--db", "testdata/solr/"};
+        Seqr.main(args);
+
+        }
 }

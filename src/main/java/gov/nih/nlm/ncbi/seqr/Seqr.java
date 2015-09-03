@@ -1,17 +1,11 @@
 package gov.nih.nlm.ncbi.seqr;
 
+import com.diffplug.common.base.Throwing;
 import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
 import gov.nih.nlm.ncbi.seqr.solr.JsonStreamParser;
 import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -61,7 +55,7 @@ public class Seqr {
     private static SolrServer solrServer;
 
 	private static String version = "0.0.1a";
-	private static String versionSolr = "4";
+	private static String versionSolr; // = "4";
     
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
@@ -187,9 +181,6 @@ public class Seqr {
 		return parser;
 	}
 
-    public static SolrServer getSolrServer(){
-        return solrServer;
-    }
 
 	public static String getVersion(){
 		return version;
@@ -229,89 +220,75 @@ public class Seqr {
 
 
     	//handle streams
-    	Writer outstream = new PrintWriter(System.out);
-    	Map<String, ProteinSequence> queryFasta;
 
-    	if (space.get("out") != null){
-    		try {
-				outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
-			} catch (FileNotFoundException e) {
-				System.out.println("Output file '" + space.getString("output_file") + "' not found.");
-				System.exit(1);
-			}
-    	}
-
-
-    	Output outputter = new Output(outstream, outputCode, outputFields);
-
-		String informat = space.get("input_format");
-		List<Map<String, String>> inputSequences = new ArrayList<>();
-
+		final Errors.Rethrowing rethrow = Errors.rethrow();
+		//TODO: parser.setDefault not working
+		final String inFormat = (space.get("input_format") != null) ? space.get("input_format") : FASTA;
 		Function<File,Stream<Map<String, String>>> getSequences;
 
-		if (informat == "fasta") {
+		if (inFormat == "fasta") {
 			Function<Map.Entry<String, ProteinSequence>, Map<String, String>> extractSequence = (Map.Entry<String, ProteinSequence> seq) ->
 					new HashMap<String, String>() {
 						{
-							put("header", seq.getValue().getOriginalHeader());
+							put("defline", seq.getValue().getOriginalHeader());
 							put("sequence", seq.getValue().getSequenceAsString() );
 						}
 					};
-			Function<File, Set<Map.Entry<String, ProteinSequence>>> getFasta = (Errors.rethrow().wrap((File f) -> FastaReaderHelper.readFastaProteinSequence(f))).andThen(Map::entrySet);
-			getSequences = 	(File f) ->
-							         getFasta.apply(f)
-									.stream()
-				                    .map( extractSequence);
-									//.collect(Collectors.toList());
+			getSequences =
+					rethrow.wrap( (File f) ->
+					FastaReaderHelper.readFastaProteinSequence(f)
+					.entrySet()
+					.stream()
+				    .map(extractSequence)
+					);
 		}
 
-		else if (informat == "json") {
+		else if (inFormat == "json") {
 			//StreamSupport.stream(jn.spliterator(), false /* or whatever */);
-
-
-			//	Function<File, Map<String, Object>[]> jsonToMap = Errors.rethrow().wrap((File j) -> new ObjectMapper().readValue(j,  Map[].class));
-			//Function<File, Stream<Map<String, Object>>>
-					getSequences = Errors.rethrow().wrap((File j) ->
+					getSequences = rethrow.wrap((File j) ->
 				StreamSupport.stream( (new ObjectMapper().readValue(j, JsonNode.class)).spliterator(), false)
 					.map((jn) -> new ObjectMapper().convertValue(jn, Map.class))); //new TypeReference<HashMap<String, Object>>() { });
 		}
+
 		else throw new NotImplementedException();//"input format " + informat + " not supported.");
 
-		SeqrController control = new SeqrController(solrServer);
-		//Function indexEntry = ((SolrInputDocument e) -> solrServer.add(e)).compose(SolrInputDocument::new);
 
-	    String cmd = space.getString("command")	;
-		Function<Map, UpdateResponse> indexEntry = Errors.rethrow().wrap((Map m) -> (
-				solrServer.add(
-						new SolrInputDocument((Map<String, SolrInputField>) m))));
+		final SeqrController control = new SeqrController(solrServer);
 
-		List<File> inFiles = space.getList("input_files");
-		List<Stream<UpdateResponse>> resullts;
+		final List<File> inFiles =  (space.get("input_files") != null) ? space.getList("input_files") : Arrays.asList(new File[] {space.get("input_file")});
+
+		final Stream<SolrInputDocument>	inputDocuments = inFiles.parallelStream() // will lthis cause lock problems?
+                                             				.flatMap(getSequences)
+                                             				.map( y -> transformMap(y, SolrInputField::new))
+                                             				.map(SolrInputDocument::new);
+
+	    final String cmd = space.getString("command")	;
 		if (cmd == INDEX) {
-			inFiles.stream()
-					.flatMap(getSequences.andThen((s) -> s.map(indexEntry)))
+			inputDocuments.map(
+					rethrow.wrap((SolrInputDocument e) -> solrServer.add(e)))
 					.forEach(System.out::println);
 			quit(0);
-		}
+		} 
 
-
-    	if (space.get("input_files") != null){
-    		for (File f : l){
+		List<Map<String, ProteinSequence>> inputFastas = new ArrayList<>();
+		if (space.get("input_files") != null){
+    		for (File f : inFiles){
     			try {
 					inputFastas.add(FastaReaderHelper.readFastaProteinSequence(f));
 				} catch (IOException e) {
 					System.out.println("File '" + f.toString() + "' for indexing not found.");
-					System.exit(1);
+					quit(1);
 				}
     		}
     	}
+		Map<String, ProteinSequence> queryFasta;
     	if (space.get("input_file") != null){
     		try {
-				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), (space.getBoolean("is_dna")));
+				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), space.getBoolean("is_dna"));
                 inputFastas.add(queryFasta);
 			} catch (IOException ee) {
 				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
-				System.exit(1);
+				quit(1);
 			}
     	} else {
     		try {
@@ -328,14 +305,23 @@ public class Seqr {
 //    		solrQuery = space.getString("solr_query");
 //    	}
 
+		Writer outstream = new PrintWriter(System.out);
+		if (space.get("out") != null){
+			try {
+				outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
+			} catch (FileNotFoundException e) {
+				System.out.println("Output file '" + space.getString("output_file") + "' not found.");
+				quit(1);
+			}
+		}
 
+		Output outputter = new Output(outstream, outputCode, outputFields); 
 
-			if (informat == FASTA) {
+			if (inFormat == FASTA) {
 				for (Map<String, ProteinSequence> fasta : inputFastas) {
 					for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()) {
 						ProteinSequence seq = contig.getValue();
 						String protSeq = seq.getSequenceAsString();
-						String cmd = space.getString("command");
 						if (cmd == SEARCH) {
 							try {
 								SolrDocumentList solrDocList = control.search(protSeq);
@@ -375,5 +361,19 @@ public class Seqr {
 				solrServer.shutdown();
 				System.exit(exitcode);
 			}
+	static <X, Y, Z> Map<X, Z> transformMap(Map<? extends X, ? extends Y> input,
+										  Function<Y, Z> function) {
+		Map<X, Z> result = new HashMap<>();
+		input.forEach((k, v) -> result.put(k, function.apply(v)));
+		return result;
+	}
 
+
+	static <X, Y, Z> Map<X, Z> transform(Map<? extends X, ? extends Y> input,
+										 Function<Y, Z> function) {
+		return input.keySet().stream()
+				.collect(Collectors.toMap(Function.identity(),
+						key -> function.apply(input.get(key))));
+	}
 		}
+
