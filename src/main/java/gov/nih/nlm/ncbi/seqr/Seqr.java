@@ -400,19 +400,6 @@ container = new CoreContainer(solrString);
 				if (container != null) container.shutdown();
 				System.exit(exitcode);
 			}
-	static <X, Y, Z> Map<X, Z> transformMap(Map<? extends X, ? extends Y> input,
-										  Function<Y, Z> function) {
-		Map<X, Z> result = new HashMap<>();
-		input.forEach((k, v) -> result.put(k, function.apply(v)));
-		return result;
-	}
 
-
-	static <X, Y, Z> Map<X, Z> transform(Map<? extends X, ? extends Y> input,
-										 Function<Y, Z> function) {
-		return input.keySet().stream()
-				.collect(Collectors.toMap(Function.identity(),
-						key -> function.apply(input.get(key))));
-	}
 		}
 
