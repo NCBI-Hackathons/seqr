@@ -4,6 +4,8 @@ import com.diffplug.common.base.Throwing;
 
 //import fj.data.Stream;
 import java.util.stream.Stream;
+
+import fj.data.Seq;
 import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
 import gov.nih.nlm.ncbi.seqr.solr.JsonStreamParser;
 import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
@@ -54,7 +56,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class Seqr {
 
-	private static final int COMMIT_PERIOD = 1000;
+	private static final int COMMIT_PERIOD = 10000;
 	private static SolrServer solrServer;
 
 	private static String version = "0.0.1a";
@@ -70,8 +72,9 @@ public class Seqr {
 	private static final String CSV = "CSV";
 
 	static final String[] informats = {FASTA, JSON, CSV};
-    
-    public static void main(final String[] args) {
+	private static CoreContainer container = null;
+
+	public static void main(final String[] args) {
 
         ArgumentParser parser = buildParser();
 
@@ -88,8 +91,12 @@ public class Seqr {
         } catch (URISyntaxException e) {
 			System.out.println("Couldn't parse Solr server path or address.");
 			System.exit(1);
+		} catch (SolrServerException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-    }
+	}
 
 	private static ArgumentParser buildParser() {
 		ArgumentParser parser = ArgumentParsers.newArgumentParser("seqr")
@@ -205,7 +212,7 @@ public class Seqr {
     		solrServer = httpSolrServer;
     	} else {
     		//solr server is local
-    		CoreContainer container = new CoreContainer(solrString);
+container = new CoreContainer(solrString);
             container.load();
            	solrServer = new EmbeddedSolrServer(container, COLLECTION);
 
@@ -213,28 +220,28 @@ public class Seqr {
 			versionSolr = sih.getVersion();
     	}
 
-    	//handle outfmt if present
-    	List<String> outputFields = null;
-    	Integer outputCode = Output.TABULAR_WITH_COMMENT_LINES;
-    	if (space.get("format") != null){
-    		outputFields = space.getList("format");
-    		outputCode = Integer.parseInt(outputFields.remove(0));
-    	}
 
+       final Map SCHEMA = new HashMap<String, Class>();
+		SCHEMA.put("id", Integer.class);
+		SCHEMA.put("defline", String.class);
+		SCHEMA.put("sequence", String.class);
+		//new SolrInputField
 
     	//handle streams
 
 		final Errors.Rethrowing rethrow = Errors.rethrow();
 		//TODO: parser.setDefault not working
 		final String inFormat = (space.get("input_format") != null) ? space.get("input_format") : FASTA;
-		Function<File,Stream<Map<String, String>>> getSequences;
+		Function<File,Stream<SolrInputDocument>> getSequences;
 
 		if (inFormat == "fasta") {
-			Function<Map.Entry<String, ProteinSequence>, Map<String, String>> extractSequence = (Map.Entry<String, ProteinSequence> seq) ->
-					new HashMap<String, String>() {
+			Function<Map.Entry<String, ProteinSequence>, SolrInputDocument> extractSequence = (Map.Entry<String, ProteinSequence> seq) ->
+					//new HashMap<String, String>() {
+						new SolrInputDocument() {
 						{
-							put("defline", seq.getValue().getOriginalHeader());
-							put("sequence", seq.getValue().getSequenceAsString() );
+							addField("id", "" + new Random().nextInt());
+							addField("defline", seq.getValue().getOriginalHeader());
+							addField("sequence", seq.getValue().getSequenceAsString() );
 						}
 					};
 			getSequences =
@@ -250,7 +257,7 @@ public class Seqr {
 			//StreamSupport.stream(jn.spliterator(), false /* or whatever */);
 					getSequences = rethrow.wrap((File j) ->
 				StreamSupport.stream( (new ObjectMapper().readValue(j, JsonNode.class)).spliterator(), false)
-					.map((jn) -> new ObjectMapper().convertValue(jn, Map.class))); //new TypeReference<HashMap<String, Object>>() { });
+					.map((jn) -> new ObjectMapper().convertValue(jn, SolrInputDocument.class))); //new TypeReference<HashMap<String, Object>>() { });
 		}
 
 		else throw new NotImplementedException();//"input format " + informat + " not supported.");
@@ -260,32 +267,39 @@ public class Seqr {
 
 		final List<File> inFiles =  (space.get("input_files") != null) ? space.getList("input_files") : Arrays.asList(new File[] {space.get("input_file")});
 
-		final fj.data.Stream<SolrInputDocument> inputDocuments;
-		inputDocuments = (fj.data.Stream<SolrInputDocument>) inFiles.parallelStream() // will lthis cause lock problems?
-                                             				.flatMap(getSequences)
-                                             				.map( y -> transformMap(y, SolrInputField::new))
-                                             				.map(SolrInputDocument::new);
-
+		final Stream<SolrInputDocument> docStream =
+				                     inFiles.parallelStream() // will lthis cause lock problems?
+                                             				.flatMap(getSequences);
 
 		final String cmd = space.getString("command")	;
 		if (cmd == INDEX) {
-			inputDocuments.zipIndex()
-					.map(p -> {
-								try {
-									if (p._2() % COMMIT_PERIOD == 0) solrServer.commit();
 
-									return solrServer.add(p._1());
-
-								} catch (Exception e) {
-									e.printStackTrace();
-								} return null;
-							}
-					)
-					.forEach(System.out::println);
-
+			int numAdded = 0;
+			for (SolrInputDocument doc : (Iterable<SolrInputDocument>) docStream::iterator) {
+				System.out.println(doc);
+				UpdateResponse result = solrServer.add(doc);
+				System.out.println(result);
+				numAdded++;
+				if (numAdded % COMMIT_PERIOD == 0) solrServer.commit();
+			}
 			solrServer.commit();
 			quit(0);
-		} 
+		}
+
+//			inputDocuments.zipIndex()
+//					.map(p -> {
+//								try {
+//									if (p._2() % COMMIT_PERIOD == 0) solrServer.commit();
+//
+//									return solrServer.add(p._1());
+//
+//								} catch (Exception e) {
+//									e.printStackTrace();
+//								} return null;
+//							}
+//					)
+//					.forEach(System.out::println);
+
 		List<Map<String, ProteinSequence>> inputFastas = new ArrayList<>();
 		if (space.get("input_files") != null){
     		for (File f : inFiles){
@@ -331,6 +345,15 @@ public class Seqr {
 			}
 		}
 
+		//handle outfmt if present
+		List<String> outputFields = null;
+		Integer outputCode = Output.TABULAR_WITH_COMMENT_LINES;
+		if (space.get("format") != null){
+			outputFields = space.getList("format");
+			outputCode = Integer.parseInt(outputFields.remove(0));
+		}
+
+
 		Output outputter = new Output(outstream, outputCode, outputFields); 
 
 			if (inFormat == FASTA) {
@@ -375,6 +398,7 @@ public class Seqr {
 
 			private static void quit ( int exitcode){
 				solrServer.shutdown();
+				if (container != null) container.shutdown();
 				System.exit(exitcode);
 			}
 	static <X, Y, Z> Map<X, Z> transformMap(Map<? extends X, ? extends Y> input,
