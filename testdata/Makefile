@@ -1,10 +1,10 @@
 VERSION=4.10.4
 MEM=3G
 PORT=8983
-
+SOLR_HOME="${PWD}/solr"
 
 start:  install
-	solr-${VERSION}/bin/solr -s ./solr -m ${MEM} -p ${PORT}
+	solr-${VERSION}/bin/solr -s ${SOLR_HOME} -m ${MEM} -p ${PORT}
 
 install: solr-${VERSION}/bin/solr 
 
