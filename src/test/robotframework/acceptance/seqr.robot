@@ -26,6 +26,16 @@ TestProteinSearch
 
 
 #TestIndex
+
+#TestIndexFASTA
+#    ${process_result} =     Run Process     java    -jar   ${jar}   index  testdata/data/toindex.fasta      --db    testdata/solr/
+#    Should Be Equal As Integers         ${process_result.rc}        0
+#    ${search_result} =     Run Process     java    -jar    ${jar}    search	  ${newly_inexed_fasta}	 --db	 testdata/solr/
+
+#TestIndexJSON
+#    ${process_result} =     Run Process     java    -jar   ${jar}   index  testdata/data/toindex.fasta      --db    testdata/solr/      --is_dna
+
+
 TestTranslationSearch
     ${process_result} =     Run Process     java    -jar   ${jar}   search  testdata/data/testnt.fasta      --db    testdata/solr/      --is_dna
 

@@ -1,6 +1,9 @@
 package gov.nih.nlm.ncbi.seqr;
 
 import com.diffplug.common.base.Throwing;
+
+//import fj.data.Stream;
+import java.util.stream.Stream;
 import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
 import gov.nih.nlm.ncbi.seqr.solr.JsonStreamParser;
 import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
@@ -12,7 +15,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -52,7 +54,8 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class Seqr {
 
-    private static SolrServer solrServer;
+	private static final int COMMIT_PERIOD = 1000;
+	private static SolrServer solrServer;
 
 	private static String version = "0.0.1a";
 	private static String versionSolr; // = "4";
@@ -191,7 +194,7 @@ public class Seqr {
 	}
 
     
-    public static void handleCommand(Namespace space) throws URISyntaxException {
+    public static void handleCommand(Namespace space) throws URISyntaxException, IOException, SolrServerException {
     	//set up server
     	String solrString = space.getString("solr_url_or_path");
     	URI solrUri = new URI(solrString);
@@ -257,19 +260,32 @@ public class Seqr {
 
 		final List<File> inFiles =  (space.get("input_files") != null) ? space.getList("input_files") : Arrays.asList(new File[] {space.get("input_file")});
 
-		final Stream<SolrInputDocument>	inputDocuments = inFiles.parallelStream() // will lthis cause lock problems?
+		final fj.data.Stream<SolrInputDocument> inputDocuments;
+		inputDocuments = (fj.data.Stream<SolrInputDocument>) inFiles.parallelStream() // will lthis cause lock problems?
                                              				.flatMap(getSequences)
                                              				.map( y -> transformMap(y, SolrInputField::new))
                                              				.map(SolrInputDocument::new);
 
-	    final String cmd = space.getString("command")	;
+
+		final String cmd = space.getString("command")	;
 		if (cmd == INDEX) {
-			inputDocuments.map(
-					rethrow.wrap((SolrInputDocument e) -> solrServer.add(e)))
+			inputDocuments.zipIndex()
+					.map(p -> {
+								try {
+									if (p._2() % COMMIT_PERIOD == 0) solrServer.commit();
+
+									return solrServer.add(p._1());
+
+								} catch (Exception e) {
+									e.printStackTrace();
+								} return null;
+							}
+					)
 					.forEach(System.out::println);
+
+			solrServer.commit();
 			quit(0);
 		} 
-
 		List<Map<String, ProteinSequence>> inputFastas = new ArrayList<>();
 		if (space.get("input_files") != null){
     		for (File f : inFiles){
