@@ -240,7 +240,7 @@ container = new CoreContainer(solrString);
 						{
 							//TODO: At some point, figure out a way to add FASTA sequences that aren't in this format!
 							//NOTE: "id" = GI Number defined by NCBI
-							addField("id", seq.getKey().split("\\|")[1]); //GI number!
+							addField("id", seq.getValue().getOriginalHeader().split("\\|")[1]); //GI number!
 							addField("defline", seq.getValue().getOriginalHeader());
 							addField("sequence", seq.getValue().getSequenceAsString() );
 						}
@@ -264,13 +264,13 @@ container = new CoreContainer(solrString);
 		else throw new NotImplementedException();//"input format " + informat + " not supported.");
 
 
-		final SeqrController control = new SeqrController(solrServer);
 
 		final List<File> inFiles =  (space.get("input_files") != null) ? space.getList("input_files") : Arrays.asList(new File[] {space.get("input_file")});
 
 		final Stream<SolrInputDocument> docStream =
-				                     inFiles.parallelStream() // will lthis cause lock problems?
-                                             				.flatMap(getSequences);
+		                             //inFiles.parallelStream() // will lthis cause lock problems?
+				                         inFiles.stream()
+                                             			.flatMap(getSequences);
 
 		final String cmd = space.getString("command")	;
 		if (cmd == INDEX) {
@@ -286,6 +286,7 @@ container = new CoreContainer(solrString);
 			solrServer.commit();
 			quit(0);
 		}
+		final SeqrController control = new SeqrController(solrServer);
 
 //			inputDocuments.zipIndex()
 //					.map(p -> {
@@ -389,7 +390,7 @@ container = new CoreContainer(solrString);
 							control.index(name, protSeq);
 						} else quit(1);
 
-						solrServer.shutdown();
+						quit(0);
 
 					}
 				}
