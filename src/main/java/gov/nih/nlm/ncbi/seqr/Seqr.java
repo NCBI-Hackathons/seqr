@@ -232,6 +232,10 @@ container = new CoreContainer(solrString);
 		//TODO: parser.setDefault not working
 		final String inFormat = (space.get("input_format") != null) ? space.get("input_format") : FASTA;
 		Function<File,Stream<SolrInputDocument>> getSequences;
+		Function<File, Stream<Map.Entry<String, ProteinSequence>>> getFastaEntries = rethrow.wrap((File f) ->
+				FastaReaderHelper.readFastaProteinSequence(f)
+						.entrySet()
+						.stream());
 
 		if (inFormat == "fasta") {
 			Function<Map.Entry<String, ProteinSequence>, SolrInputDocument> extractSequence = (Map.Entry<String, ProteinSequence> seq) ->
@@ -245,13 +249,7 @@ container = new CoreContainer(solrString);
 							addField("sequence", seq.getValue().getSequenceAsString() );
 						}
 					};
-			getSequences =
-					rethrow.wrap( (File f) ->
-					FastaReaderHelper.readFastaProteinSequence(f)
-					.entrySet()
-					.stream()
-				    .map(extractSequence)
-					);
+			getSequences = getFastaEntries.andThen(x->x.map(extractSequence));
 		}
 
 		else if (inFormat == "json") {
@@ -263,14 +261,11 @@ container = new CoreContainer(solrString);
 
 		else throw new NotImplementedException();//"input format " + informat + " not supported.");
 
-
-
 		final List<File> inFiles =  (space.get("input_files") != null) ? space.getList("input_files") : Arrays.asList(new File[] {space.get("input_file")});
 
-		final Stream<SolrInputDocument> docStream =
+		final Stream<SolrInputDocument> docStream = inFiles.stream()
+						                                            .flatMap(getSequences);
 		                             //inFiles.parallelStream() // will lthis cause lock problems?
-				                         inFiles.stream()
-                                             			.flatMap(getSequences);
 
 		final String cmd = space.getString("command")	;
 		if (cmd == INDEX) {
@@ -302,36 +297,7 @@ container = new CoreContainer(solrString);
 //					)
 //					.forEach(System.out::println);
 
-		List<Map<String, ProteinSequence>> inputFastas = new ArrayList<>();
 
-		//inputFastas = inFiles.map
-		if (space.get("input_files") != null){
-    		for (File f : inFiles){
-    			try {
-					inputFastas.add(FastaReaderHelper.readFastaProteinSequence(f));
-				} catch (IOException e) {
-					System.out.println("File '" + f.toString() + "' for indexing not found.");
-					quit(1);
-				}
-    		}
-    	}
-		Map<String, ProteinSequence> queryFasta;
-    	if (space.get("input_file") != null){
-    		try {
-				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), space.getBoolean("is_dna"));
-                inputFastas.add(queryFasta);
-			} catch (IOException ee) {
-				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
-				quit(1);
-			}
-    	} else {
-    		try {
-    			queryFasta = FastaReaderHelper.readFastaProteinSequence(System.in);
-    			inputFastas.add(queryFasta);
-    		} catch (IOException e){
-    			throw new RuntimeException(e);
-    		}
-    	}
 
 		//TODO: implement smarter queries with more specific parameters
 //    	String solrQuery = "";
@@ -357,11 +323,14 @@ container = new CoreContainer(solrString);
 			outputCode = Integer.parseInt(outputFields.remove(0));
 		}
 
+		Stream<Map<String, ProteinSequence>> queryEntries = inFiles.stream()
+				.map(rethrow.wrap(((File e) -> DNASequenceStreamMap.maybeConvert(e, space.getBoolean("is_dna")))));
+		Iterable<Map<String, ProteinSequence>> queryIter = 	queryEntries::iterator;
 
 		Output outputter = new Output(outstream, outputCode, outputFields); 
 
 			if (inFormat == FASTA) {
-				for (Map<String, ProteinSequence> fasta : inputFastas) {
+				for (Map<String, ProteinSequence> fasta : queryIter) {
 					for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()) {
 						ProteinSequence seq = contig.getValue();
 						String protSeq = seq.getSequenceAsString();
