@@ -54,4 +54,10 @@ CoreContainer container ;
         Seqr.main(args);
 
         }
+    @Test
+    public void testServer() {
+        String[] args = {"search",  "testdata/data/test.fasta", "--db", "http://localhost:8983/solr"};
+        Seqr.main(args);
+
+    }
 }

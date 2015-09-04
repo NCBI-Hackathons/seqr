@@ -303,6 +303,8 @@ container = new CoreContainer(solrString);
 //					.forEach(System.out::println);
 
 		List<Map<String, ProteinSequence>> inputFastas = new ArrayList<>();
+
+		//inputFastas = inFiles.map
 		if (space.get("input_files") != null){
     		for (File f : inFiles){
     			try {
@@ -385,9 +387,6 @@ container = new CoreContainer(solrString);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
-						} else if (cmd == INDEX) {
-							String name = contig.getKey();
-							control.index(name, protSeq);
 						} else quit(1);
 
 						quit(0);

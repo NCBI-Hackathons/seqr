@@ -72,9 +72,6 @@ public class SeqrController {
         return server.query(query);
     }
 
-    public ModifiableSolrParams queryFromFasta(String fastaPath) {
-        return null;
-    }
 
     public Collection<File> getJSON(String dir) {
         return FileUtils.listFiles(new File(dir),
@@ -87,29 +84,29 @@ public class SeqrController {
     }
 
 
-    public String sequenceQueryFromInts(List<Integer> ints) {
-        String commaSeparatedNumbers = ints.stream()
-                .map(i -> i.toString())
-                .collect(Collectors.joining(" "));
-        return "matchstring:" + "\"(" + ints + "\")";
-
-    } /* API Functions */
-    public SolrDocumentList search(List<Integer> rawSequenceInts, Integer page_num, Integer num_rows) throws SolrServerException{
-    	String q = sequenceQueryFromInts(rawSequenceInts);
-        QueryResponse response = null;
-        if (page_num != null && num_rows != null) {
-            response = makeQuery(q, page_num, num_rows );
-        } else if (num_rows != null){
-            response = makeQuery(q, num_rows);
-        } else {
-            response = makeQuery(q, DEFAULT_ROWS);
-        }
-        if (response != null){
-        	return response.getResults();
-        }
-        return null;
-    }
-    
+//    public String sequenceQueryFromInts(List<Integer> ints) {
+//        String commaSeparatedNumbers = ints.stream()
+//                .map(i -> i.toString())
+//                .collect(Collectors.joining(" "));
+//        return "matchstring:" + "\"(" + ints + "\")";
+//
+//    } /* API Functions */
+//    public SolrDocumentList search(List<Integer> rawSequenceInts, Integer page_num, Integer num_rows) throws SolrServerException{
+//    	String q = sequenceQueryFromInts(rawSequenceInts);
+//        QueryResponse response = null;
+//        if (page_num != null && num_rows != null) {
+//            response = makeQuery(q, page_num, num_rows );
+//        } else if (num_rows != null){
+//            response = makeQuery(q, num_rows);
+//        } else {
+//            response = makeQuery(q, DEFAULT_ROWS);
+//        }
+//        if (response != null){
+//        	return response.getResults();
+//        }
+//        return null;
+//    }
+//
 
     public SolrDocumentList index(String name, String proteinSequence) {
         return null;
@@ -117,6 +114,7 @@ public class SeqrController {
 
     public SolrDocumentList search(String seq) throws Exception {
         String query = "sequence" + ":" + seq;
+        System.out.println(query);
         return makeQuery(query).getResults();
     }
 
