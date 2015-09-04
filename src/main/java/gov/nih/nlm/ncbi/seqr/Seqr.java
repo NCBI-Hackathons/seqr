@@ -211,7 +211,7 @@ public class Seqr {
     		solrServer = httpSolrServer;
     	} else {
     		//solr server is local
-container = new CoreContainer(solrString);
+            container = new CoreContainer(solrString);
             container.load();
            	solrServer = new EmbeddedSolrServer(container, COLLECTION);
 
@@ -220,13 +220,10 @@ container = new CoreContainer(solrString);
     	}
 
 
-       final Map SCHEMA = new HashMap<String, Class>();
-		SCHEMA.put("id", Integer.class);
-		SCHEMA.put("defline", String.class);
-		SCHEMA.put("sequence", String.class);
-		//new SolrInputField
-
-    	//handle streams
+//       final Map SCHEMA = new HashMap<String, Class>();
+//		SCHEMA.put("id", Integer.class);
+//		SCHEMA.put("defline", String.class);
+//		SCHEMA.put("sequence", String.class);
 
 		final Errors.Rethrowing rethrow = Errors.rethrow();
 		//TODO: parser.setDefault not working
@@ -263,9 +260,7 @@ container = new CoreContainer(solrString);
 
 		final List<File> inFiles =  (space.get("input_files") != null) ? space.getList("input_files") : Arrays.asList(new File[] {space.get("input_file")});
 
-		final Stream<SolrInputDocument> docStream = inFiles.stream()
-						                                            .flatMap(getSequences);
-		                             //inFiles.parallelStream() // will lthis cause lock problems?
+		final Stream<SolrInputDocument> docStream = inFiles.stream().flatMap(getSequences);
 
 		final String cmd = space.getString("command")	;
 		if (cmd == INDEX) {
@@ -281,21 +276,6 @@ container = new CoreContainer(solrString);
 			solrServer.commit();
 			quit(0);
 		}
-		final SeqrController control = new SeqrController(solrServer);
-
-//			inputDocuments.zipIndex()
-//					.map(p -> {
-//								try {
-//									if (p._2() % COMMIT_PERIOD == 0) solrServer.commit();
-//
-//									return solrServer.add(p._1());
-//
-//								} catch (Exception e) {
-//									e.printStackTrace();
-//								} return null;
-//							}
-//					)
-//					.forEach(System.out::println);
 
 
 
@@ -306,6 +286,7 @@ container = new CoreContainer(solrString);
 //    	}
 
 		Writer outstream = new PrintWriter(System.out);
+
 		if (space.get("out") != null){
 			try {
 				outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
@@ -314,7 +295,6 @@ container = new CoreContainer(solrString);
 				quit(1);
 			}
 		}
-
 		//handle outfmt if present
 		List<String> outputFields = null;
 		Integer outputCode = Output.TABULAR_WITH_COMMENT_LINES;
@@ -324,10 +304,13 @@ container = new CoreContainer(solrString);
 		}
 
 		Stream<Map<String, ProteinSequence>> queryEntries = inFiles.stream()
-				.map(rethrow.wrap(((File e) -> DNASequenceStreamMap.maybeConvert(e, space.getBoolean("is_dna")))));
-		Iterable<Map<String, ProteinSequence>> queryIter = 	queryEntries::iterator;
+		//		.map(rethrow.wrap(((File e) -> DNASequenceStreamMap.maybeConvert(e, space.getBoolean("is_dna")))));
+		.map(rethrow.wrap(((File e) -> FastaReaderHelper.readFastaProteinSequence(e))));
+		//Iterable<Map<String, ProteinSequence>> queryIter = 	queryEntries::iterator;
+		List<Map<String, ProteinSequence>> queryIter = 	queryEntries.collect(Collectors.toList());
 
-		Output outputter = new Output(outstream, outputCode, outputFields); 
+		Output outputter = new Output(outstream, outputCode, outputFields);
+		final SeqrController control = new SeqrController(solrServer);
 
 			if (inFormat == FASTA) {
 				for (Map<String, ProteinSequence> fasta : queryIter) {
