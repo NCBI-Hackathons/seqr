@@ -32,11 +32,14 @@ import org.apache.solr.core.CoreContainer;
 public class SeqrController {
 
     private final SolrServer server;
+    private final LoadLargeFile2SolrServer fileLoader;
     private static final int DEFAULT_ROWS = 100;
 
     public SeqrController(SolrServer server) {
         this.server = server;
+               fileLoader = new LoadLargeFile2SolrServer(server);
     }
+
 
     public QueryResponse makeQuery(String q) throws Exception {
         return makeQuery(q, DEFAULT_ROWS);
@@ -69,9 +72,6 @@ public class SeqrController {
         return server.query(query);
     }
 
-    public ModifiableSolrParams queryFromFasta(String fastaPath) {
-        return null;
-    }
 
     public Collection<File> getJSON(String dir) {
         return FileUtils.listFiles(new File(dir),
@@ -80,51 +80,59 @@ public class SeqrController {
     }
 
     public boolean loadJSONDir(String dir) throws SolrServerException, InterruptedException, IOException {
-        return loadJSON(getJSON(dir));
+        return loadJSONs(getJSON(dir));
     }
 
-    public boolean loadJSON(Collection<File> jsonFiles) throws IOException, SolrServerException, InterruptedException {
-        LoadLargeFile2SolrServer fileLoader = new LoadLargeFile2SolrServer(server);
-        for (File file : jsonFiles) {
-            String name = file.getName();
-            System.out.println("loading " + name + "....");
-            fileLoader.loadFile(file);
-        }
-        server.commit();
-        return true;
-    }
 
-    public String sequenceQueryFromInts(List<Integer> ints) {
-        String commaSeparatedNumbers = ints.stream()
-                .map(i -> i.toString())
-                .collect(Collectors.joining(" "));
-        return "matchstring:" + "\"(" + ints + "\")";
+//    public String sequenceQueryFromInts(List<Integer> ints) {
+//        String commaSeparatedNumbers = ints.stream()
+//                .map(i -> i.toString())
+//                .collect(Collectors.joining(" "));
+//        return "matchstring:" + "\"(" + ints + "\")";
+//
+//    } /* API Functions */
+//    public SolrDocumentList search(List<Integer> rawSequenceInts, Integer page_num, Integer num_rows) throws SolrServerException{
+//    	String q = sequenceQueryFromInts(rawSequenceInts);
+//        QueryResponse response = null;
+//        if (page_num != null && num_rows != null) {
+//            response = makeQuery(q, page_num, num_rows );
+//        } else if (num_rows != null){
+//            response = makeQuery(q, num_rows);
+//        } else {
+//            response = makeQuery(q, DEFAULT_ROWS);
+//        }
+//        if (response != null){
+//        	return response.getResults();
+//        }
+//        return null;
+//    }
+//
 
-    }
-    /* API Functions */
-    public SolrDocumentList search(List<Integer> rawSequenceInts, Integer page_num, Integer num_rows) throws SolrServerException{
-    	String q = sequenceQueryFromInts(rawSequenceInts);
-        QueryResponse response = null;
-        if (page_num != null && num_rows != null) {
-            response = makeQuery(q, page_num, num_rows );
-        } else if (num_rows != null){
-            response = makeQuery(q, num_rows);
-        } else {
-            response = makeQuery(q, DEFAULT_ROWS);
-        }
-        if (response != null){
-        	return response.getResults();
-        }
-        return null;
-    }
-    
-
-    public SolrDocumentList index(String proteinSequence) {
+    public SolrDocumentList index(String name, String proteinSequence) {
         return null;
     }
 
     public SolrDocumentList search(String seq) throws Exception {
         String query = "sequence" + ":" + seq;
+        System.out.println(query);
         return makeQuery(query).getResults();
     }
+
+        public boolean loadJSON(File jsonFile)  {
+                String name = jsonFile.getName();
+                System.out.println("loading " + name + "....");
+                try {
+                        fileLoader.loadFile(jsonFile);
+                        return true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } return false;
+            }
+
+                public boolean loadJSONs(Collection<File> jsonFiles) throws IOException, SolrServerException, InterruptedException {
+                jsonFiles.parallelStream().forEach(this::loadJSON);
+        server.commit();
+        return true;
+    }
+
 }
