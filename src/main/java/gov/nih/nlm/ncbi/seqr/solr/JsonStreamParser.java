@@ -9,13 +9,9 @@ import org.codehaus.jackson.map.MappingJsonFactory;
 import java.io.File;
 import java.io.IOException;
 
-public class JsonStreamParser {
+public class JsonStreamParser extends StreamParser {
     private JsonFactory factory;
     private JsonParser parser;
-
-    public interface Callback {
-        void processSingleJSONRecord(JsonNode node);
-    }
 
     public JsonStreamParser(File jsonFile) throws IOException {
         factory = new MappingJsonFactory();
@@ -40,6 +36,7 @@ public class JsonStreamParser {
             }
         }
     }
+
 }
 
 
