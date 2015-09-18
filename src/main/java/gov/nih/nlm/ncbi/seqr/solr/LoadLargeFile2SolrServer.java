@@ -59,6 +59,7 @@ public class LoadLargeFile2SolrServer {
                     }
                 }
             }
+            System.out.println(doc.toString() + "+++++++");
             return doc;
         }
 
@@ -75,8 +76,7 @@ public class LoadLargeFile2SolrServer {
                     System.out.println(this.JsonToken2SolrInputDocument(node));
                 }
             } catch (Exception e) {
-                //logger.error("parsing error " + e.getStackTrace());
-                e.printStackTrace();;
+                logger.error("json parsing error");
             }
         }
     }
@@ -93,7 +93,24 @@ public class LoadLargeFile2SolrServer {
                 server.commit();
             }
         } catch (SolrServerException e) {
-            logger.warn("solr server exception:" + e.getStackTrace());
+            logger.warn("solr server exception");
+        }
+        return true;
+    }
+
+    public boolean loadFastaFile(File fastaFile) throws IOException {
+        if (!fastaFile.exists()) {
+            logger.warn(fastaFile.getName() + " do not exists, skip loading");
+            return false;
+        }
+        FastaStreamParser parser = new FastaStreamParser(fastaFile);
+        parser.processing(new CallBackImpl());
+        try {
+            if (server != null) {
+                server.commit();
+            }
+        } catch (SolrServerException e) {
+            logger.warn("solr server exception");
         }
         return true;
     }
