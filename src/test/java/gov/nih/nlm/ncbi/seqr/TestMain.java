@@ -74,5 +74,4 @@ CoreContainer container ;
         converter.convertToJsonFile("testdata/data/short.json");
     }
 
-
 }
