@@ -13,11 +13,8 @@ import java.io.File;
 //import org.codehaus.jackson.JsonNode;
 
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.BeforeClass;
+import org.junit.*;
+
 import java.io.IOException;
 
 public class TestMain {
@@ -32,6 +29,13 @@ public class TestMain {
         solrServer = new EmbeddedSolrServer(container, "sequence");
         control = new SeqrController(solrServer);
     }
+
+//    @AfterClass
+//    public static void afterEverything() throws SolrServerException, InterruptedException, IOException {
+//        setUpController();
+//        solrServer.deleteByQuery("*:*");
+//        tearDownController();
+//    }
 
     @BeforeClass
     public static void beforeEverything() throws SolrServerException, InterruptedException, IOException {

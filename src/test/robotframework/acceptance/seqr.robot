@@ -45,17 +45,17 @@ TestIndexFASTA
 #    ${search_result} =     Run Process     java    -jar    ${jar}    search	  ${newly_indexed_fasta}	 --db	 testdata/solr/
 #    Should Not Contain         ${search_result.stdout}        gi|489223532|ref|WP_003131952.1|
 
-    ${process_result} =     Run Process     java    -jar   ${jar}   index  testdata/data/toindex.fasta      --db    testdata/solr/
-    Should Be Equal As Integers         ${process_result.rc}        0
+    ${index_result} =     Run Process     java    -jar   ${jar}   index  ${newly_indexed_fasta}      --db    testdata/solr/
+    Should Be Equal As Integers         ${index_result.rc}        0
+    Log To Console       ${index_result.stdout}
+    Log To Console        ${index_result.stderr}
+    Should Be Equal As Integers         ${index_result.rc}        0
+
     ${search_result} =     Run Process     java    -jar    ${jar}    search	  ${newly_indexed_fasta}	 --db	 testdata/solr/
-    Log To Console       ${process_result.stdout}
-    Log To Console        ${process_result.stderr}
 
+    Log To Console        ${search_result.stderr}
+    Should Contain         ${search_result.stdout}        gi|489223532|ref|WP_003131952.1|
 
-    Should Be Equal As Integers         ${process_result.rc}        0
-
-    Should Contain         ${process_result.stdout}        gi|489223532|ref|WP_003131952.1|
-    Should Contain         ${process_result.stdout}     MAQQRRGGFKRRKKVDFIAANKIEVVDYKDTELLKRFISERGKILPRRVTGTSAKNQRKVVNAIKRARVMALLPFVAEDQN
 #TestIndexJSON
 #    ${process_result} =     Run Process     java    -jar   ${jar}   index  testdata/data/toindex.fasta      --db    testdata/solr/      --is_dna
 
