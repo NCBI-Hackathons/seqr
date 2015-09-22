@@ -105,7 +105,7 @@ public class Seqr {
         search.addArgument("--num_alignments").type(Integer.class).help("number of results to return");
         search.addArgument("--start_alignments").type(Integer.class).help("begin output at the Nth result").metavar("N");
 
-       index.addArgument("--in_format").type(String.class).setDefault("fasta").choices(informats);
+       index.addArgument("--input_format").type(String.class).setDefault("fasta").dest("input_format").choices(informats);
         //add special outformat parser
         search.addArgument("--outfmt").type(String.class).dest("format").help(Output.OUTPUTHELP).nargs("+");
         
