@@ -36,6 +36,7 @@ public class TestMain {
     @BeforeClass
     public static void beforeEverything() throws SolrServerException, InterruptedException, IOException {
         setUpController();
+        solrServer.deleteByQuery("*:*");
         control.loadJSONDir("testdata/data");
         tearDownController();
 //        LoadLargeFile2SolrServer server = new LoadLargeFile2SolrServer(solrServer);
@@ -98,6 +99,7 @@ public class TestMain {
     public void testFastaToJsonFileConversion() throws Exception {
         FastaStreamParser converter = new FastaStreamParser("testdata/data/short.fasta");
         converter.convertToJsonFile("testdata/data/short.json");
+        new File("testdata/data/short.json").delete();
     }
 
 }
