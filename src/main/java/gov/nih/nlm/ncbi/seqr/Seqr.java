@@ -258,7 +258,9 @@ public class Seqr {
                 List<File> l = space.getList("input_files");
                 for (File f : l) {
                     try {
-                        inputFastas.add(FastaReaderHelper.readFastaProteinSequence(f));
+                        queryFasta = DNASequenceStreamMap.maybeConvert(f, space.getBoolean("is_dna"));
+                        //inputFastas.add(FastaReaderHelper.readFastaProteinSequence(f));
+                        inputFastas.add(queryFasta);
                     } catch (IOException e) {
                         System.out.println("File '" + f.toString() + "' for indexing not found.");
                         System.exit(1);
