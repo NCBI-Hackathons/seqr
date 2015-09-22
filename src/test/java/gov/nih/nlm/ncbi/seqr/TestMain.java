@@ -30,8 +30,8 @@ CoreContainer container ;
         control = new SeqrController(solrServer);
         control.loadJSONDir("testdata/data");
 
-        LoadLargeFile2SolrServer server = new LoadLargeFile2SolrServer(solrServer);
-        server.loadFastaFile(new File("testdata/data/short.fasta"));
+//        LoadLargeFile2SolrServer server = new LoadLargeFile2SolrServer(solrServer);
+//        server.loadFastaFile(new File("testdata/data/short.fasta"));
 
     }
 
@@ -44,6 +44,23 @@ CoreContainer container ;
     public void testFastaSolrImport() throws Exception {
         LoadLargeFile2SolrServer server = new LoadLargeFile2SolrServer(solrServer);
         server.loadFastaFile(new File("testdata/data/short.fasta"));
+    }
+
+    @Test
+    public void testFastaIndexingIntegration() throws SolrServerException {
+        // check that it's not already in solr
+        String seq = "MAFSAEDVLKEYDRRRRMEALLLSLYYPNDRKLLDYKEWSPPRVQVECPKAPVEWNNPPS" +
+                "EKGLIVGHFSGIKYKGEKAQASEVDVNKMCCWVSKFKDAMRRYQGIQTCKIPGKVLSDLD" +
+                "AKIKAYNLTVEGVEGFVRYSRVTKQHVAAFLKELRHSKQYENVNLIHYILTDKRVDIQHL" +
+                "EKDLVKDFKALVESAHRMRQGHMINVKYILYQLLKKHGHGPDGPDILTVKTGSKGVLYDD" +
+                "SFRKIYTDLGWKFTPL";
+        SolrDocumentList results = control.search(seq);
+        Assert.assertEquals(0, results.size());
+
+        String[] args = {"index",  "testdata/data/short.fasta", "--db", "testdata/solr/", "--input_format", "fasta"};
+        Seqr.main(args);
+        results = control.search(seq);
+        Assert.assertEquals(1, results.size());
 
     }
 
@@ -69,6 +86,7 @@ CoreContainer container ;
         }
 
     @Test
+    //TODO: check this works with an assertion
     public void testFastaToJsonFileConversion() throws Exception {
         FastaStreamParser converter = new FastaStreamParser("testdata/data/short.fasta");
         converter.convertToJsonFile("testdata/data/short.json");
