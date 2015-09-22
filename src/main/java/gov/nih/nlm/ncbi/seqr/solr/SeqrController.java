@@ -38,7 +38,7 @@ public class SeqrController {
         this.server = server;
     }
 
-    public QueryResponse makeQuery(String q) throws Exception {
+    public QueryResponse makeQuery(String q) throws SolrServerException {
         return makeQuery(q, DEFAULT_ROWS);
     }
 
@@ -123,7 +123,7 @@ public class SeqrController {
         return null;
     }
 
-    public SolrDocumentList search(String seq) throws Exception {
+    public SolrDocumentList search(String seq) throws SolrServerException {
         String query = "sequence" + ":" + seq;
         return makeQuery(query).getResults();
     }
