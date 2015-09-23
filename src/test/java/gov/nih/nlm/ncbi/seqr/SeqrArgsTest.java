@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@net.jcip.annotations.NotThreadSafe
 public class SeqrArgsTest extends TestCase {
     private static SeqrController control;
     static EmbeddedSolrServer solrServer;
@@ -28,12 +29,10 @@ public class SeqrArgsTest extends TestCase {
 
     Lock sequential = new ReentrantLock();
 
-
     protected void setUp() throws Exception {
         super.setUp();
         sequential.lock();
     }
-
 
     protected void tearDown() throws Exception {
         super.tearDown();

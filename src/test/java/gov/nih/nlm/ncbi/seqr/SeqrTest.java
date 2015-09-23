@@ -20,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by hanl on 9/23/15.
  */
+@net.jcip.annotations.NotThreadSafe
 public class SeqrTest extends TestCase {
 
 
