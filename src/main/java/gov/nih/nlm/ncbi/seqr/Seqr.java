@@ -1,6 +1,7 @@
 package gov.nih.nlm.ncbi.seqr;
 
 import gov.nih.nlm.ncbi.seqr.nuc.DNASequenceStreamMap;
+import gov.nih.nlm.ncbi.seqr.solr.LoadLargeFile2SolrServer;
 import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
 
 import java.io.BufferedWriter;
@@ -14,6 +15,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +32,7 @@ import net.sourceforge.argparse4j.inf.Subparser;
 import net.sourceforge.argparse4j.inf.Subparsers;
 
 import net.sourceforge.argparse4j.internal.HelpScreenException;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -53,7 +56,13 @@ public class Seqr {
     private static final String SEARCH = "search";
     private static final String INDEX = "index";
     private static final String COLLECTION = "sequence";
-    
+
+	private static final String FASTA = "fasta";
+	private static final String JSON = "json";
+	private static final String CSV = "CSV";
+    private static CoreContainer container = null;
+
+    static final String[] informats = {FASTA, JSON, CSV};
 
     
     public static void main(final String[] args) {
@@ -87,7 +96,7 @@ public class Seqr {
         Subparsers subprsrs = parser.addSubparsers().description("SEQR commands").metavar("COMMAND").dest("command");
         Subparser search = subprsrs.addParser("search").help("look for something");
         Subparser index = subprsrs.addParser("index").help("create an index");
-        
+
         //add options for search
         search.addArgument("query_file").type(Arguments.fileType().acceptSystemIn().verifyCanRead()).dest("input_file").help("query file for input").metavar("QUERY FASTA");
         search.addArgument("-n", "--is_dna").action(Arguments.storeTrue()).help("Input FASTA is DNA nucleotide, not protein");
@@ -95,7 +104,8 @@ public class Seqr {
         search.addArgument("--index_file").type(Arguments.fileType().verifyCanRead()).help("pre-calculated index file");
         search.addArgument("--num_alignments").type(Integer.class).help("number of results to return");
         search.addArgument("--start_alignments").type(Integer.class).help("begin output at the Nth result").metavar("N");
-        
+
+       index.addArgument("--input_format").type(String.class).setDefault("fasta").dest("input_format").choices(informats);
         //add special outformat parser
         search.addArgument("--outfmt").type(String.class).dest("format").help(Output.OUTPUTHELP).nargs("+");
         
@@ -182,162 +192,146 @@ public class Seqr {
 
     
     public static void handleCommand(Namespace space) throws URISyntaxException {
-    	//set up server
-    	String solrString = space.getString("solr_url_or_path");
-    	URI solrUri = new URI(solrString);
-    	if (solrUri.isAbsolute()){
-    		//solr server is remote, over http
-    		HttpSolrServer httpSolrServer = new HttpSolrServer(solrString);
-    		httpSolrServer.setAllowCompression(true);
-    		solrServer = httpSolrServer;
-    	} else {
-    		//solr server is local
-    		CoreContainer container = new CoreContainer(solrString);
+        //set up server
+        String solrString = space.getString("solr_url_or_path");
+        URI solrUri = new URI(solrString);
+        if (solrUri.isAbsolute()) {
+            //solr server is remote, over http
+            HttpSolrServer httpSolrServer = new HttpSolrServer(solrString);
+            httpSolrServer.setAllowCompression(true);
+            solrServer = httpSolrServer;
+        } else {
+            //solr server is local
+            container = new CoreContainer(solrString);
             container.load();
-           	solrServer = new EmbeddedSolrServer(container, COLLECTION);
+            solrServer = new EmbeddedSolrServer(container, COLLECTION);
 
-			SystemInfoHandler sih = new SystemInfoHandler(container);
-			versionSolr = sih.getVersion();
-    	}
-    	
-    	//handle outfmt if present
-    	List<String> outputFields = null;
-    	Integer outputCode = Output.TABULAR_WITH_COMMENT_LINES;
-    	if (space.get("format") != null){
-    		outputFields = space.getList("format");
-    		outputCode = Integer.parseInt(outputFields.remove(0));
-    	}
-    	
-    	
-    	//handle streams
-    	Writer outstream = new PrintWriter(System.out);
-    	List<Map<String, ProteinSequence>> inputFastas = new ArrayList<Map<String, ProteinSequence>>(); 
-    	Map<String, ProteinSequence> queryFasta;
+            SystemInfoHandler sih = new SystemInfoHandler(container);
+            versionSolr = sih.getVersion();
+        }
 
-    	if (space.get("out") != null){
-    		try {
-				outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
-			} catch (FileNotFoundException e) {
-				System.out.println("Output file '" + space.getString("output_file") + "' not found.");
-				System.exit(1);
-			}
-    	} 
-    	
-    	
-    	Output outputter = new Output(outstream, outputCode, outputFields);
+        //handle outfmt if present
+        List<String> outputFields = null;
+        Integer outputCode = Output.TABULAR_WITH_COMMENT_LINES;
+        if (space.get("format") != null) {
+            outputFields = space.getList("format");
+            outputCode = Integer.parseInt(outputFields.remove(0));
+        }
 
-    	if (space.get("input_files") != null){
-    		List<File> l = space.getList("input_files");
-    		for (File f : l){
-    			try {
-					inputFastas.add(FastaReaderHelper.readFastaProteinSequence(f));
-				} catch (IOException e) {
-					System.out.println("File '" + f.toString() + "' for indexing not found.");
-					System.exit(1);
-				} 
-    		}
-    	}
-    	if (space.get("input_file") != null){
-    		try {
-				queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), (space.getBoolean("is_dna")));
-                inputFastas.add(queryFasta);
-			} catch (IOException ee) {
-				System.out.println("Query file '" + space.getString("input_file") + "' not found.");
-				System.exit(1);
-			}
-    	} else {
-    		try {
-    			queryFasta = FastaReaderHelper.readFastaProteinSequence(System.in);
-    			inputFastas.add(queryFasta);
-    		} catch (IOException e){
-    			throw new java.lang.RuntimeException(e);
-    		}
-    	}
-    	
-    	String solrQuery = "";
-    	if (space.get("solr_query") != null){
-    		solrQuery = space.getString("solr_query");
-    	}
-    	
-    	
-    	
-    	SeqrController control = new SeqrController(solrServer);
-    	SolrControllerAction action = null;
-    	
-    	SolrControllerAction search = new SolrControllerAction(){
 
-			public SolrDocumentList act(String seq) throws SolrServerException{
+        //handle streams
+        Writer outstream = new PrintWriter(System.out);
+        List<Map<String, ProteinSequence>> inputFastas = new ArrayList<Map<String, ProteinSequence>>();
+        Map<String, ProteinSequence> queryFasta;
+
+        if (space.get("out") != null) {
+            try {
+                outstream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream((File) space.get("output_file"))));
+            } catch (FileNotFoundException e) {
+                System.out.println("Output file '" + space.getString("output_file") + "' not found.");
+                System.exit(1);
+            }
+        }
+
+
+        Output outputter = new Output(outstream, outputCode, outputFields);
+        SeqrController control = new SeqrController(solrServer);
+        String cmd = space.get("command");
+
+        if (cmd.equals(INDEX)) {
+            final String inFormat = (space.get("input_format") != null) ? space.get("input_format") : FASTA;
+            final List<File> inFiles = (space.get("input_files") != null) ? space.getList("input_files") : Arrays.asList(new File[]{space.get("input_file")});
+            LoadLargeFile2SolrServer server = new LoadLargeFile2SolrServer(solrServer);
+            for (File f : inFiles) {
                 try {
-                    return control.search(seq);
-                } catch (Exception e) {
+                    if (inFormat.equals(FASTA)) server.loadFastaFile(f);
+                    else if (inFormat.equals(JSON)) server.loadFile(f);
+                    else throw new NotImplementedException("Format " + inFormat + " not supported for indexing.");
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return null;
-//				List<Integer> inds = new ArrayList<Integer>();
-//				inds = FindIndex.hashIndex(seq);
-//				return control.search(inds, space.getInt("start_alignments"), space.getInt("num_alignments"));
-			}
-    		
-    	};
-    	
-    	SolrControllerAction index = new SolrControllerAction(){
 
-			public SolrDocumentList act(String seq) throws SolrServerException{
-				return control.index(seq);
-			}
-    		
-    	};
-    	
-    	if (space.get("command") != null){
-    		switch(space.getString("command")){
-    			case SEARCH : 
-    				action = search;
-    				break;
-    			case INDEX :
-    				action = index;
-    				break;
-    		}
-    	}
-    	
-    	
-    	for (Map<String, ProteinSequence> fasta : inputFastas){
-    		for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()){
-    			String name = contig.getKey();
-    			ProteinSequence seq = contig.getValue();
-    			String protSeq = seq.getSequenceAsString();
-    			try {
-    				SolrDocumentList solrDocList = action.act(protSeq);
-					outputter.setTotalHits(solrDocList.size());
-					for (SolrDocument doc : solrDocList){
-						outputter.write(doc);
-                        //System.out.println(doc);
-					}
-					outstream.flush();
-				} catch (SolrServerException e) {
-					e.printStackTrace();
-				}catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ParserConfigurationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (TransformerException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-    		}
+            }
+        } else if (cmd.equals(SEARCH)) {
 
-            solrServer.shutdown();
+            if (space.get("input_files") != null) {
+                List<File> l = space.getList("input_files");
+                for (File f : l) {
+                    try {
+                        queryFasta = DNASequenceStreamMap.maybeConvert(f, space.getBoolean("is_dna"));
+                        //inputFastas.add(FastaReaderHelper.readFastaProteinSequence(f));
+                        inputFastas.add(queryFasta);
+                    } catch (IOException e) {
+                        System.out.println("File '" + f.toString() + "' for indexing not found.");
+                        System.exit(1);
+                    }
+                }
+            }
+            if (space.get("input_file") != null) {
+                try {
+                    queryFasta = DNASequenceStreamMap.maybeConvert((File) space.get("input_file"), (space.getBoolean("is_dna")));
+                    inputFastas.add(queryFasta);
+                } catch (IOException ee) {
+                    System.out.println("Query file '" + space.getString("input_file") + "' not found.");
+                    System.exit(1);
+                }
+            } else {
+                try {
+                    queryFasta = FastaReaderHelper.readFastaProteinSequence(System.in);
+                    inputFastas.add(queryFasta);
+                } catch (IOException e) {
+                    throw new java.lang.RuntimeException(e);
+                }
+            }
 
-    	}
+            String solrQuery = "";
+            if (space.get("solr_query") != null) {
+                solrQuery = space.getString("solr_query");
+            }
 
-    	
+            for (Map<String, ProteinSequence> fasta : inputFastas) {
+                for (Map.Entry<String, ProteinSequence> contig : fasta.entrySet()) {
+                    String queryId = contig.getKey();
+                    ProteinSequence seq = contig.getValue();
+                    String protSeq = seq.getSequenceAsString();
+                    try {
+                        SolrDocumentList solrDocList = control.search(protSeq);
+                        outputter.setTotalHits(solrDocList.size());
+                        for (SolrDocument doc : solrDocList) {
+                            doc.setField("query-id", queryId);
+                            outputter.write(doc);
+                            //System.out.println(doc);
+                        }
+                        outstream.flush();
+                    } catch (SolrServerException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (ParserConfigurationException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (TransformerException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } //search
+
+        else {
+            cleanUp();
+            throw new NotImplementedException("Command " + cmd + " not found.");
+        }
+
+        cleanUp();
     }
 
-    protected interface SolrControllerAction{
+    public static void cleanUp() {
+        solrServer.shutdown();
+        if (container != null) container.shutdown();
 
-		abstract SolrDocumentList act(String seq) throws SolrServerException;
+
     }
-
 
 }
