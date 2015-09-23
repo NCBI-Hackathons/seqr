@@ -1,12 +1,12 @@
 language: java
 jdk: oraclejdk8
 before_install:  
-  - "export JAVA_OPTS=-Xmx4G"
-  - "export MAVEN_OPTS=-Xmx4G"
-  
+  - "export JAVA_OPTS=-Xmx2G"
+  - "export MAVEN_OPTS=-Xmx2G"
+
 #install: 
-#  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-#  - sudo pip install robotframework
+#  - travis_wait mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+#  - travis_wait sudo pip install robotframework
 #script:
 #   - mvn test -B
 #   - pybot scripts/*.robot   

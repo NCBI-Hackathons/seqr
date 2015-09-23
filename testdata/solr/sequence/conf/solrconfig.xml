@@ -135,7 +135,7 @@
      <lst name="defaults">
       <bool name="terms">true</bool>
       <bool name="distrib">false</bool>
-    </lst>     R
+    </lst>
     <arr name="components">
       <str>terms</str>
     </arr>
@@ -143,8 +143,7 @@
   <queryResponseWriter name="json" class="solr.JSONResponseWriter">
     <str name="content-type">text/plain; charset=UTF-8</str>
   </queryResponseWriter>
-	<queryResponseWriter name="xbin" class="org.apache.solr.export.BinaryExportWriter"/>
-  <queryResponseWriter name="xslt" class="solr.XSLTResponseWriter">
+    <queryResponseWriter name="xslt" class="solr.XSLTResponseWriter">
     <int name="xsltCacheLifetimeSeconds">5</int>
   </queryResponseWriter>
   <queryParser name="cutoff"  class="org.apache.lucene.analysis.tanimoto.tanimotoCutoffPostFilterPlugin" />
