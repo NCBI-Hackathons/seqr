@@ -1,51 +1,60 @@
 package gov.nih.nlm.ncbi.seqr;
 
 import gov.nih.nlm.ncbi.seqr.solr.FastaStreamParser;
-import gov.nih.nlm.ncbi.seqr.solr.LoadLargeFile2SolrServer;
 import gov.nih.nlm.ncbi.seqr.solr.SeqrController;
+import junit.framework.TestCase;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import java.io.File;
-
-//import org.codehaus.jackson.JsonNode;
-
-
-import org.junit.*;
-
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class TestMain {
+/**
+ * Created by hanl on 9/23/15.
+ */
+public class SeqrTest extends TestCase {
+
+
     private static SeqrController control;
     static EmbeddedSolrServer solrServer;
     static CoreContainer container ;
 
-    private static void setUpController() {
+    Lock sequential = new ReentrantLock();
+
+
+    public void setUp() throws Exception {
+        super.setUp();
+        sequential.lock();
         String solrString = "testdata/solr";
         container = new CoreContainer(solrString);
         container.load();
         solrServer = new EmbeddedSolrServer(container, "sequence");
         control = new SeqrController(solrServer);
+        solrServer.deleteByQuery("*:*");
+        control.loadJSONDir("testdata/data");
+
     }
 
-//    @AfterClass
-//    public static void afterEverything() throws SolrServerException, InterruptedException, IOException {
-//        setUpController();
-//        solrServer.deleteByQuery("*:*");
-//        tearDownController();
-//    }
+    public void tearDown() throws Exception {
+        this.tearDownController();
+        sequential.unlock();
+        //LoadLargeFile2SolrServer server = new LoadLargeFile2SolrServer(solrServer);
+        //server.loadFastaFile(new File("testdata/data/short.fasta"));
+    }
+
 
     @BeforeClass
     public static void beforeEverything() throws SolrServerException, InterruptedException, IOException {
-        setUpController();
-        solrServer.deleteByQuery("*:*");
-        control.loadJSONDir("testdata/data");
+        //setUpController();
         tearDownController();
-//        LoadLargeFile2SolrServer server = new LoadLargeFile2SolrServer(solrServer);
-//        server.loadFastaFile(new File("testdata/data/short.fasta"));
-
     }
     public static void tearDownController() {
         solrServer.shutdown();
@@ -60,27 +69,11 @@ public class TestMain {
 //        tearDownController();
 //    }
 
-    @Test
-    public void testFastaIndexingIntegration() throws SolrServerException {
-        // check that it's not already in solr
-        setUpController();
-        String seq = "MIKLFCVLAAFISINSACQSSHQQREEFTVATYHSSSICTTYCYSNCVVASQHKGLNVES" +
-                "YTCDKPDPYGRETVCKCTLIKCHDI";
-        SolrDocumentList results = control.search(seq);
-        Assert.assertEquals(0, results.size());
-        tearDownController();
 
-        String[] args = {"index",  "testdata/data/short.fasta", "--db", "testdata/solr/", "--input_format", "fasta"};
-        Seqr.main(args);
-        setUpController();
-        results = control.search(seq);
-        Assert.assertEquals(1, results.size());
-        tearDownController();
-    }
 
     @Test
     public void testAbSolrSimple() throws Exception {
-        setUpController();
+
         //String seq = "MAFSAEDVLKEYDRRRRMEALLLSLYYPNDRKLLDYKEWSPPRVQVECPKAPVEWNNPPSEKGLIVGHFSGIKYKGEKAQASEVDVNKMCCWVSKFKDAMRRYQGIQTCKIPGKVLSDLDAKIKAYNLTVEGVEGFVRYSRVTKQHVAAFLKELRHSKQYENVNLIHYILTDKRVDIQHLEKDLVKDFKALVESAHRMRQGHMINVKYILYQLLKKHGHGPDGPDILTVKTGSKGVLYDDSFRKIYTDLGWKFTPL";
         //String seq = "MSFKVYDPIAELIATQFPTSNPDLQIINNDVLVVSPHKITLPMGPQNAGDVTNKAYVDQAVMSAAVPVASSTTVGTIQMAGDLEGSSGTNPIIAANKITLNKLQKIGPKMVIGNPNSDWNNTQEIELDSSFRIVDNRLNAGIVPISSTDPNKSNTVIPAPQQNGLFYLDSSGRVWVWAEHYYKCITPSRYISKWMGVGDFQELTVGQSVMWDSGRPSIETVSTQGLEVEWISSTNFTLSSLYLIPIVVKVTICIPLLGQPDQMAKFVLYSVSSAQQPRTGIVLTTDSSRSSAPIVSEYITVNWFEPKSYSVQLKEVNSDSGTTVTICSDKWLANPFLDCWITIEEVG";
         String seq = "MNTLYLGSNSPRRMEILTQLGYRVIQLPAGIDESVKAGETPFAYVQRMAEEKNRTALTLFCETNGTMPDFPLITADTCVVSDGIILGKPRSQAEAIEFLNRLSGKQHTVLTAVCIHYRGKTSSRVQTNRVVFKPLSSEEISAYVQSGEPMDKAGAYAVQGIGGIFIQSIEGSFSGIMGLPVYETVSMLQDLGYRSPLSALKP";
@@ -90,15 +83,7 @@ public class TestMain {
             System.out.println(document);
         }
         Assert.assertEquals(1, results.size());
-        tearDownController();
     }
-
-
-    @Test
-    public void testArgParse() {
-        String[] args = {"search",  "testdata/data/test.fasta", "--db", "testdata/solr/"};
-        Seqr.main(args);
-        }
 
     @Test
     //TODO: check this works with an assertion
@@ -107,5 +92,4 @@ public class TestMain {
         converter.convertToJsonFile("testdata/data/short.json");
         new File("testdata/data/short.json").delete();
     }
-
 }
