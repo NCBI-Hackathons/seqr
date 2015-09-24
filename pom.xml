@@ -1,103 +1,118 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"> 
- <build>
-  <plugins>
-      <plugin>
-          <groupId>org.robotframework</groupId>
-          <artifactId>robotframework-maven-plugin</artifactId>
-          <version>1.4.5</version>
-          <executions>
-              <execution>
-                  <!--<phase>test</phase>-->
-                  <goals>
-                      <goal>run</goal>
-                  </goals>
-              </execution>
-          </executions>
-      </plugin>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <excludes>
+                        <exclude>${test.excludes}</exclude>
+                    </excludes>
+                    <includes>
+                        <include>${test.includes}</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.robotframework</groupId>
+                <artifactId>robotframework-maven-plugin</artifactId>
+                <version>1.4.5</version>
+                <executions>
+                    <execution>
+                        <!--<phase>test</phase>-->
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-      <!-- Shade / Self-contained JAR -->
-      <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-shade-plugin</artifactId>
-          <!-- <version>2.0</version> -->
-          <version>2.2</version>
-          <executions>
-              <execution>
-                  <phase>package</phase>
-                  <goals>
-                      <goal>shade</goal>
-                  </goals>
-                  <configuration>
-                      <!-- <minimizeJar>true</minimizeJar> -->
-                      <minimizeJar>false</minimizeJar>
-                      <transformers>
-                          <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                          <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                              <mainClass>gov.nih.nlm.ncbi.seqr.Seqr</mainClass>
-                          </transformer>
-                      </transformers>
+            <!-- Shade / Self-contained JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <!-- <version>2.0</version> -->
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <!-- <minimizeJar>true</minimizeJar> -->
+                            <minimizeJar>false</minimizeJar>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>gov.nih.nlm.ncbi.seqr.Seqr</mainClass>
+                                </transformer>
+                            </transformers>
 
-                      <!-- fix SecurityException: Invalid signature file digest for Manifest main attributes -->
-                      <filters>
-                          <filter>
-                              <artifact>*:*</artifact>
-                              <excludes>
-                                  <exclude>META-INF/*.SF</exclude>
-                                  <exclude>META-INF/*.DSA</exclude>
-                                  <exclude>META-INF/*.RSA</exclude>
-                              </excludes>
-                          </filter>
-                      </filters>
+                            <!-- fix SecurityException: Invalid signature file digest for Manifest main attributes -->
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
 
-                  </configuration>
-              </execution>
-          </executions>
-      </plugin>
-
-
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 
-<!--   <plugin>
-     <artifactId>maven-assembly-plugin</artifactId>
-     <configuration>
-       <archive>
-         <manifest>
-           <mainClass>gov.nih.nlm.ncbi.seqr.Seqr</mainClass>
-         </manifest>
-       </archive>
-       <descriptorRefs>
-         <descriptorRef>jar-with-dependencies</descriptorRef>
-       </descriptorRefs>
-     </configuration>
-     <executions>
-       <execution>
-         <id>make-assembly</id>
-         <phase>package</phase>
-         <goals>
-           <goal>single</goal>
-         </goals>
-       </execution>
-     </executions>
-   </plugin> -->
-  </plugins>
- </build>
+            <!--   <plugin>
+                 <artifactId>maven-assembly-plugin</artifactId>
+                 <configuration>
+                   <archive>
+                     <manifest>
+                       <mainClass>gov.nih.nlm.ncbi.seqr.Seqr</mainClass>
+                     </manifest>
+                   </archive>
+                   <descriptorRefs>
+                     <descriptorRef>jar-with-dependencies</descriptorRef>
+                   </descriptorRefs>
+                 </configuration>
+                 <executions>
+                   <execution>
+                     <id>make-assembly</id>
+                     <phase>package</phase>
+                     <goals>
+                       <goal>single</goal>
+                     </goals>
+                   </execution>
+                 </executions>
+               </plugin> -->
+        </plugins>
+    </build>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>gov.nih.nlm.ncbi.seqr</groupId>
     <artifactId>seqr</artifactId>
     <version>4.10.4-SNAPSHOT</version>
     <packaging>jar</packaging>
-  <name>seqr-application</name>
-  <url>http://maven.apache.org</url>
+    <name>seqr-application</name>
+    <url>http://maven.apache.org</url>
 
-  <properties>
-      <maven.compiler.source>1.8</maven.compiler.source>
-      <maven.compiler.target>1.8</maven.compiler.target>
-      <solr.version>4.10.4</solr.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <exec.mainClass>gov.nih.nlm.ncbi.seqr.Seqr</exec.mainClass>
-  </properties>
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <solr.version>4.10.4</solr.version>
+        <test.includes>**/*Test.java</test.includes>
+        <test.excludes>**/*Test.java.bogus</test.excludes>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <exec.mainClass>gov.nih.nlm.ncbi.seqr.Seqr</exec.mainClass>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
