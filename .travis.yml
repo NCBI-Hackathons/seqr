@@ -8,5 +8,5 @@ before_install:
 #  - travis_wait mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 #  - travis_wait sudo pip install robotframework
 script:
-   - mvn test -B -Dtest.excludes="**/*ArgsTest.java
+   - mvn test -B -Dtest.excludes="**/*ArgsTest.java"
 #   - pybot scripts/*.robot   
