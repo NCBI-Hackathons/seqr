@@ -8,3 +8,6 @@ test: install
 
 clean:
 	mvn clean
+
+server: 
+	cd testdata && make start
