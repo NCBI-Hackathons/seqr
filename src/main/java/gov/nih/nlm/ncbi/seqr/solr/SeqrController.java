@@ -79,6 +79,12 @@ public class SeqrController {
                 /*TrueFileFilter.INSTANCE,*/ TrueFileFilter.INSTANCE);
     }
 
+    public Collection<File> getFASTA(String dir) {
+        return FileUtils.listFiles(new File(dir),
+                FileFilterUtils.suffixFileFilter(".fasta"),
+                /*TrueFileFilter.INSTANCE,*/ TrueFileFilter.INSTANCE);
+    }
+
     public boolean loadJSONDir(String dir) throws SolrServerException, InterruptedException, IOException {
         return loadJSON(getJSON(dir));
     }
@@ -89,6 +95,21 @@ public class SeqrController {
             String name = file.getName();
             System.out.println("loading " + name + "....");
             fileLoader.loadFile(file);
+        }
+        server.commit();
+        return true;
+    }
+
+    public boolean loadFASTADir(String dir) throws SolrServerException, InterruptedException, IOException {
+        return loadFASTA(getFASTA(dir));
+    }
+
+    public boolean loadFASTA(Collection<File> fastaFiles) throws IOException, SolrServerException, InterruptedException {
+        LoadLargeFile2SolrServer fileLoader = new LoadLargeFile2SolrServer(server);
+        for (File file : fastaFiles) {
+            String name = file.getName();
+            System.out.println("loading " + name + "....");
+            fileLoader.loadFastaFile(file);
         }
         server.commit();
         return true;

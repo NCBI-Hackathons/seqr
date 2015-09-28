@@ -59,7 +59,6 @@ public class LoadLargeFile2SolrServer {
                     }
                 }
             }
-            System.out.println(doc.toString() + "+++++++");
             return doc;
         }
 
