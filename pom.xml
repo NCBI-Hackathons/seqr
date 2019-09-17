@@ -94,7 +94,7 @@
   <properties>
       <maven.compiler.source>1.8</maven.compiler.source>
       <maven.compiler.target>1.8</maven.compiler.target>
-      <solr.version>4.10.4</solr.version>
+      <solr.version>8.2.0</solr.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <exec.mainClass>gov.nih.nlm.ncbi.seqr.Seqr</exec.mainClass>
   </properties>
